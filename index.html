@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>顾亚辉 · 个人主页</title>
+<meta name="description" content="个人主页 / 技能站 — 用 Gitee Pages 部署" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="cursor-glow"></div>
+<canvas id="spark-canvas"></canvas>
+<div id="progress"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="brand" id="brand"></div>
+    <div class="navlinks" id="navlinks"></div>
+  </div>
+</nav>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap">© <span id="year"></span> <span id="deployNote"></span></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+  "use strict";
+  var S = window.SITE, esc = window.SiteKit.esc;
+  if (!S){ document.getElementById('app').innerHTML = '<p style="padding:60px;text-align:center;color:#9aa6bd">内容加载失败：未找到 data.js</p>'; return; }
+
+  /* ---------- 品牌名高亮 ---------- */
+  var brandName = esc(S.profile.name), hi = esc(S.profile.nameAccent);
+  if (hi) brandName = brandName.split(hi).join('<span>'+hi+'</span>');
+  document.getElementById('brand').innerHTML = brandName;
+
+  /* ---------- 顶部导航 ---------- */
+  document.getElementById('navlinks').innerHTML =
+    '<a href="#about">关于</a>'+
+    '<a href="works.html">作品</a>'+
+    '<a href="#contact">联系</a>';
+
+  /* ---------- 主体渲染 ---------- */
+  var edu = S.education || {visible:false};
+  var app = document.getElementById('app');
+  app.innerHTML =
+    /* Hero — 赛博工坊面板 */
+    '<header class="hero">'+
+      '<canvas id="hero-canvas"></canvas>'+
+      '<div class="wrap hero-grid">'+
+        '<div class="panel hero-card">'+
+          '<div class="avatar">'+esc(S.profile.avatarText)+'</div>'+
+          '<div class="role-chip">'+esc(S.profile.title)+'</div>'+
+        '</div>'+
+        '<div class="hero-main">'+
+          '<div class="kicker">// PERSONAL_WORKSPACE</div>'+
+          '<h1 class="type-title">你好，我是 <span class="glitch">'+esc(S.profile.name)+'</span></h1>'+
+          '<p>'+esc(S.profile.summary)+'</p>'+
+          '<div class="cta">'+
+            (S.profile.cta||[]).map(function(c){
+              return '<a class="btn '+(c.primary?'primary':'ghost')+'" href="'+esc(c.href)+'">'+esc(c.text)+'</a>';
+            }).join('')+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="marquee" aria-hidden="true">'+
+        '<div class="marquee-track">'+
+          (function(){ var t=(S.skills||[]).join('  ·  '); return '<span>'+esc(t)+'</span><span>'+esc(t)+'</span>'; })()+
+        '</div>'+
+      '</div>'+
+    '</header>'+
+
+    /* About */
+    '<section id="about" class="about"><div class="wrap reveal">'+
+      '<div class="sec-no">01</div>'+
+      '<div class="sec-title">关于我</div><div class="sec-sub">About</div>'+
+      '<p>'+esc(S.about)+'</p>'+
+      '<div class="stats">'+
+        (S.stats||[]).map(function(s){ return '<div class="stat"><div class="stat-bar"></div><b>'+esc(s.value)+'</b><span>'+esc(s.label)+'</span></div>'; }).join('')+
+      '</div>'+
+    '</div></section>'+
+
+    /* Contact */
+    '<section id="contact" class="contact"><div class="wrap reveal">'+
+      '<div class="sec-no">02</div>'+
+      '<div class="sec-title">联系我</div><div class="sec-sub">Get in touch</div>'+
+      '<div class="socials">'+
+        (S.contact||[]).filter(function(c){ return c.href || c.text; }).map(function(c){
+          if (c.text){
+            return '<span class="contact-text">'+esc(c.label)+'</span>';
+          }
+          var attr = c.ext ? ' target="_blank" rel="noopener"' : '';
+          return '<a href="'+esc(c.href)+'"'+attr+'>'+esc(c.label)+'</a>';
+        }).join('')+
+      '</div>'+
+    '</div></section>';
+
+  document.getElementById('deployNote').textContent = S.profile.deployNote || '由 Gitee Pages 部署';
+  document.getElementById('year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

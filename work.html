@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>作品详情 · 顾亚辉</title>
+<meta name="description" content="作品详情 — 静态网页 / 图片 / 视频展示" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="cursor-glow"></div>
+<canvas id="spark-canvas"></canvas>
+<div id="progress"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="brand" id="brand"></div>
+    <div class="navlinks">
+      <a href="index.html">首页</a>
+      <a href="works.html">作品</a>
+    </div>
+  </div>
+</nav>
+
+<main id="app">
+  <div class="wrap works-empty" style="padding:80px 0 40px;text-align:center;color:#9aa6bd">
+    <p style="font-size:14px;letter-spacing:1px">作品加载中…</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© <span id="year"></span> <span id="deployNote"></span></div>
+</footer>
+
+<div id="lightbox"><span class="close">×</span><img src="" alt=""></div>
+
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+  "use strict";
+  var app = document.getElementById('app');
+
+  function showError(title, detail){
+    var safeTitle = String(title == null ? '未知错误' : title);
+    var safeDetail = String(detail == null ? '' : detail)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    app.innerHTML =
+      '<div class="wrap works-empty" style="padding:80px 0;text-align:center">'+
+        '<p style="font-size:22px;color:#ff8a8a;margin-bottom:10px">⚠️ '+safeTitle+'</p>'+
+        '<pre style="max-width:780px;margin:0 auto 18px;padding:14px;border-radius:10px;'+
+          'background:#1c2230;color:#9aa6bd;border:1px solid #2a3142;font-size:12px;'+
+          'white-space:pre-wrap;word-break:break-word;text-align:left">'+safeDetail+'</pre>'+
+        '<a class="btn primary" href="works.html">← 返回作品列表</a>'+
+      '</div>';
+  }
+
+  // 抓所有未捕获错误，渲染到页面里（每次都会覆盖旧的）
+  window.addEventListener('error', function(ev){
+    if (!ev || !ev.error) return;
+    showError('页面脚本异常', (ev.error && ev.error.stack) || String(ev.error));
+  });
+
+  try {
+    var S = window.SITE;
+    var esc = (window.SiteKit && window.SiteKit.esc) || function(s){
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+      });
+    };
+
+    if (!S){ showError('内容加载失败', '未找到 window.SITE（data.js 未加载或语法错误）。请按 Ctrl+F5 强制刷新后重试。'); return; }
+    if (!S.projects || !S.projects.length){ showError('作品列表为空', 'data.js 中没有 projects 数据。'); return; }
+
+    var brandEl = document.getElementById('brand');
+    if (brandEl){
+      var name = esc(S.profile && S.profile.name || '顾亚辉');
+      var hi = esc(S.profile && S.profile.nameAccent || '');
+      if (hi) name = name.split(hi).join('<span>'+hi+'</span>');
+      brandEl.innerHTML = name;
+    }
+    var note = document.getElementById('deployNote');
+    if (note) note.textContent = (S.profile && S.profile.deployNote) || '由 Gitee Pages 部署';
+    var yr = document.getElementById('year');
+    if (yr) yr.textContent = new Date().getFullYear();
+
+    function getParam(name){
+      try {
+        return new URLSearchParams(location.search).get(name) || '';
+      } catch(_){
+        var m = new RegExp('[?&]'+name+'=([^&]*)').exec(location.search);
+        return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
+      }
+    }
+
+    var slug = getParam('slug');
+    if (!slug){
+      // 没传 slug 就列出全部作品让用户自选
+      var list = S.projects.map(function(x){
+        return '<li style="margin:8px 0"><a class="btn ghost" href="work.html?slug='+
+          esc(x.slug)+'&v=20260823-1920" style="margin-right:10px">'+esc(x.title||x.slug)+'</a></li>';
+      }).join('');
+      app.innerHTML =
+        '<div class="wrap works-empty" style="padding:80px 0;text-align:center">'+
+          '<p style="font-size:18px;margin-bottom:18px">未指定作品（缺少 ?slug= 参数）</p>'+
+          '<ul style="list-style:none;padding:0">'+list+'</ul>'+
+        '</div>';
+      return;
+    }
+
+    var p = S.projects.filter(function(x){ return x && x.slug === slug; })[0];
+    if (!p){
+      var sameSlug = S.projects.filter(function(x){ return x && x.slug && x.slug.indexOf(slug) >= 0; });
+      var hint = sameSlug.length ? '类似 slug：' + sameSlug.map(function(x){return x.slug;}).join(', ') : '';
+      showError('未找到该作品', 'slug = "'+slug+'"（请检查链接或返回列表重选）\n'+hint);
+      return;
+    }
+
+    document.title = (p.title || '作品') + ' · 顾亚辉';
+
+    function safeSrc(src){ return esc(src || ''); }
+    function imgWithFallback(src, alt, cls){
+      cls = cls || 'detail-media';
+      return '<img class="'+esc(cls)+'" src="'+safeSrc(src)+'" alt="'+esc(alt||'')+'" loading="lazy" '
+        + 'onerror="this.onerror=null;this.alt=\'图片加载失败\';this.style.background=\'#1c2230\';this.style.minHeight=\'120px\'">';
+    }
+    function mainMedia(m){
+      m = m || {kind:'none'};
+      if (m.kind === 'image') return imgWithFallback(m.src, p.title);
+      if (m.kind === 'video') return '<video class="detail-media" src="'+safeSrc(m.src)+'" controls preload="metadata"></video>';
+      if (m.kind === 'web')   return '<iframe class="detail-frame" src="'+safeSrc(m.src)+'" loading="lazy"></iframe>';
+      return '<div class="detail-ph">＋ 主展示素材（待补充）<small>图片 / 视频 / 静态网页，在 data.js 的 media 里配置</small></div>';
+    }
+
+    var gallery = (p.gallery || []).filter(Boolean);
+    var galleryHTML = gallery.length
+      ? '<div class="gallery">' + gallery.map(function(src){ return imgWithFallback(src, '', 'gallery-img'); }).join('') + '</div>'
+      : '';
+
+    var isWeb = p.media && p.media.kind === 'web';
+    var linkHTML = p.link
+      ? '<a class="btn primary" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+
+        (isWeb ? '新窗口打开网页 →' : '访问外部链接 →')+'</a>'
+      : '';
+
+    var repoHTML = p.repo
+      ? '<a class="btn ghost" href="'+esc(p.repo)+'" target="_blank" rel="noopener">项目源码 →</a>'
+      : '';
+
+    var webNote = isWeb
+      ? '<p class="sec-sub" style="margin-top:10px">上方为内嵌网页预览；如显示异常可点「新窗口打开网页」。</p>'
+      : '';
+
+    var isWeb = p.media && p.media.kind === 'web';
+    var bodyCls = isWeb ? 'detail-body is-web' : 'detail-body';
+    app.innerHTML =
+      '<header class="detail-hero'+(isWeb?' is-web':'')+'">'+
+        '<div class="wrap">'+
+          '<a class="back" href="works.html">← 返回作品列表</a>'+
+          '<h1>'+esc(p.title||'')+'</h1>'+
+          '<div class="stack">'+esc(p.stack||'')+'</div>'+
+        '</div>'+
+      '</header>'+
+      '<div class="'+bodyCls+'">'+
+        '<p class="lead">'+esc(p.desc||'')+'</p>'+
+        mainMedia(p.media)+
+        webNote+
+        galleryHTML+
+        '<div class="detail-actions">'+
+          '<a class="btn ghost" href="works.html">← 返回作品列表</a>'+
+          repoHTML+
+          linkHTML+
+        '</div>'+
+      '</div>';
+  } catch(err){
+    showError('页面渲染异常', (err && err.stack) || String(err));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>固件视界</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到分析内容</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" role="img">
+              <path d="M10 12h28v24H10z" />
+              <path d="M16 18h16v12H16z" />
+              <path d="M5 17h5M5 24h5M5 31h5M38 17h5M38 24h5M38 31h5M17 7v5M24 7v5M31 7v5M17 36v5M24 36v5M31 36v5" />
+            </svg>
+          </div>
+          <div>
+            <div class="brand-title">固件视界</div>
+            <div class="brand-subtitle">Firmware Vision</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="privacy-badge" title="文件不会离开当前浏览器">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8 7 10 4.1-2 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+            本地解析
+          </div>
+          <button class="button secondary" id="open-file-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v5h14v-5"/></svg>
+            选择文件
+          </button>
+          <button class="button secondary folder-button" id="open-folder-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v10H3V6Z"/><path d="M8 13h8M12 9v8"/></svg>
+            选择目录
+          </button>
+          <input id="file-input" type="file" multiple hidden />
+          <input id="folder-input" type="file" multiple webkitdirectory directory hidden />
+        </div>
+      </header>
+
+      <main id="main-content">
+        <section class="hero" id="empty-state">
+          <div class="hero-grid"></div>
+          <div class="hero-copy">
+            <div class="eyebrow"><span></span> 嵌入式固件资源分析</div>
+            <h1>看清每一字节<br /><strong>落在何处</strong></h1>
+            <p>打开一个或多个 ELF、SO、MAP 文件，快速理解模块、段、函数和变量的真实布局。</p>
+            <div class="format-list" aria-label="支持的文件格式">
+              <span>ELF32 / ELF64</span><span>Linux SO</span><span>GCC / Keil MAP</span>
+            </div>
+          </div>
+
+          <button class="drop-zone" id="drop-zone" type="button">
+            <span class="drop-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M4 14v6h16v-6" /></svg>
+            </span>
+            <strong>拖放固件或共享库到这里</strong>
+            <span>支持同时选择多个 ELF、SO 或 MAP</span>
+            <small>文件仅在本机浏览器中处理，不会上传；目录导入会自动跳过非固件文件</small>
+          </button>
+
+          <div class="feature-strip">
+            <article><span>01</span><div><strong>资源总览</strong><p>代码、数据与存储占用</p></div></article>
+            <article><span>02</span><div><strong>布局透视</strong><p>地址空间与层级图谱</p></div></article>
+            <article><span>03</span><div><strong>符号寻址</strong><p>函数变量快速定位</p></div></article>
+          </div>
+        </section>
+
+        <section class="workspace hidden" id="workspace" aria-live="polite">
+          <aside class="sidebar">
+            <div class="file-card">
+              <div class="file-icon" id="file-icon" aria-hidden="true">ELF</div>
+              <div class="file-info"><strong id="file-name">—</strong><span id="file-meta">—</span></div>
+              <button class="icon-button" id="replace-file-button" type="button" aria-label="更换文件" title="更换文件">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v6h-6"/></svg>
+              </button>
+            </div>
+            <nav class="nav-list" aria-label="分析视图">
+              <button class="nav-item active" data-view="overview" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg>资源总览</button>
+              <button class="nav-item" data-view="layout" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v4H4V5Zm0 6h9v8H4v-8Zm11 0h5v8h-5v-8Z"/></svg>内存布局</button>
+              <button class="nav-item" data-view="symbols" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-4 3 4 3m8-6 4 3-4 3m-2-9-4 12"/></svg>符号检索<span id="symbol-count-badge">0</span></button>
+              <button class="nav-item" data-view="sections" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v4H5V4Zm0 6h14v4H5v-4Zm0 6h14v4H5v-4Z"/></svg>段与区域</button>
+            </nav>
+            <div class="sidebar-footer">
+              <div><span class="status-dot"></span><span id="parser-status">解析完成</span></div>
+              <button id="export-button" type="button">导出 JSON</button>
+            </div>
+          </aside>
+
+          <div class="content">
+            <div class="content-header">
+              <div><span class="kicker" id="view-kicker">FIRMWARE OVERVIEW</span><h2 id="view-title">资源总览</h2></div>
+              <div class="content-header-actions">
+                <label class="process-context hidden" id="process-context"><span>分析进程</span><select id="process-selector" aria-label="选择独立可执行程序"></select><small id="process-context-detail"></small></label>
+                <label class="global-search">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+                  <span class="sr-only">搜索函数、变量或地址</span>
+                  <input id="global-search" type="search" placeholder="搜索函数、变量或地址…" autocomplete="off" />
+                  <kbd>/</kbd>
+                </label>
+              </div>
+            </div>
+
+            <div id="loading-panel" class="loading-panel hidden">
+              <span class="spinner"></span>
+              <strong>正在解析固件</strong>
+              <p id="loading-message">读取文件结构…</p>
+              <div class="loading-progress" role="progressbar" aria-label="批量解析进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="loading-progress-bar"></span></div>
+              <small id="loading-detail">文件仅在当前页面内存中处理</small>
+            </div>
+            <div id="error-panel" class="error-panel hidden" role="alert"><strong>无法解析该文件</strong><p id="error-message"></p><button id="retry-button" type="button">选择其他文件</button></div>
+
+            <div class="view" id="view-overview">
+              <div class="metric-grid" id="metric-grid"></div>
+              <div class="panel-grid">
+                <article class="panel span-7">
+                  <div class="panel-header"><div><span id="region-panel-kicker">MEMORY REGIONS</span><h3 id="region-panel-title">存储区域占用</h3></div><div class="legend" id="memory-legend"></div></div>
+                  <div class="region-list" id="region-list"></div>
+                </article>
+                <article class="panel span-5">
+                  <div class="panel-header"><div><span>COMPOSITION</span><h3>资源构成</h3></div></div>
+                  <div class="composition"><div class="donut" id="composition-donut"><div><strong>0</strong><span>总计</span></div></div><div class="composition-legend" id="composition-legend"></div></div>
+                </article>
+                <article class="panel span-8">
+                  <div class="panel-header"><div><span>LARGEST SYMBOLS</span><h3>体积最大的符号</h3></div><button class="text-button" data-jump="symbols" type="button">查看全部 →</button></div>
+                  <div class="compact-table" id="largest-symbols"></div>
+                </article>
+                <article class="panel span-4">
+                  <div class="panel-header"><div><span>FILE INFO</span><h3>映像信息</h3></div></div>
+                  <dl class="info-list" id="info-list"></dl>
+                </article>
+              </div>
+            </div>
+
+            <div class="view hidden" id="view-layout">
+              <article class="panel layout-panel">
+                <div class="panel-header"><div><span>ADDRESS SPACE</span><h3>地址空间布局</h3></div><div class="layout-actions"><button class="segmented active" data-layout-mode="address" type="button">地址轴</button><button class="segmented" data-layout-mode="treemap" type="button">层级图</button><button class="segmented" data-layout-mode="simulation" type="button">模拟运行</button></div></div>
+                <div id="address-layout" class="address-layout"></div>
+                <div id="treemap-layout" class="treemap-layout hidden" aria-label="资源层级图"></div>
+                <div id="simulation-view" class="simulation-view hidden">
+                  <div class="simulation-type-switch" aria-label="模拟运行类型">
+                    <button class="simulation-type active" data-simulation-type="linux" type="button" aria-pressed="true"><span>Linux / MPU</span><strong>动态加载模拟</strong><small>PIE、SO、ASLR 风格基址分配</small></button>
+                    <button class="simulation-type" data-simulation-type="mcu" type="button" aria-pressed="false"><span>Keil / MCU</span><strong>固定地址启动布局</strong><small>Flash、RAM、DATA 拷贝与 BSS 清零</small></button>
+                    <div class="simulation-recommendation" id="simulation-recommendation">当前推荐：Linux 动态加载</div>
+                  </div>
+                  <div class="simulation-controls" id="linux-simulation-controls">
+                    <div class="simulation-notice"><strong>虚拟加载</strong><span>用于观察可能的进程布局，不代表真实 ASLR 或动态链接结果</span></div>
+                    <label><span>起始基址</span><input id="simulation-base" value="0x00007F0000000000" spellcheck="false" /></label>
+                    <label><span>模块对齐</span><select id="simulation-alignment"><option value="0x1000">4 KiB</option><option value="0x10000">64 KiB</option><option value="0x200000" selected>2 MiB</option></select></label>
+                    <label><span>地址间隔</span><select id="simulation-gap"><option value="compact">1–4 MiB</option><option value="normal" selected>1–16 MiB</option><option value="wide">16–64 MiB</option></select></label>
+                    <label><span>随机种子</span><input id="simulation-seed" value="station-sim" spellcheck="false" /></label>
+                    <button id="regenerate-simulation" class="button simulation-button" type="button">重新生成</button>
+                  </div>
+                  <div class="mcu-simulation-info hidden" id="mcu-simulation-info"><div><strong>MCU 固定地址模式</strong><span>保留链接器给出的绝对地址，不进行 Linux 式随机重定位。</span></div><div><strong>启动过程</strong><span>展示代码和常量驻留、DATA 初始化复制、BSS/ZI 清零及符号固定地址。</span></div></div>
+                  <div class="simulation-summary" id="simulation-summary"></div>
+                  <div class="simulation-legend" aria-label="模拟内存资源图例"><span><i class="code"></i>代码区</span><span><i class="rodata"></i>只读数据</span><span><i class="data"></i>静态数据</span><span><i class="bss"></i>BSS / ZI</span><span><i class="other"></i>其他段</span></div>
+                  <div class="simulation-layout" id="simulation-layout"></div>
+                  <section class="simulation-symbols">
+                    <div class="simulation-symbol-head"><div><span>RUNTIME SYMBOLS</span><h4>模拟符号地址</h4></div><label><span class="sr-only">搜索模拟运行符号</span><input id="simulation-symbol-search" type="search" placeholder="搜索函数、变量、模块或模拟地址…" autocomplete="off" /></label><small id="simulation-symbol-count">0 个符号</small></div>
+                    <div class="simulation-symbol-list" id="simulation-symbol-list"></div>
+                  </section>
+                </div>
+                <p class="chart-note">颜色表示资源类别；列表和提示框同时提供名称、地址与精确大小。</p>
+              </article>
+            </div>
+
+            <div class="view hidden" id="view-symbols">
+              <article class="panel table-panel">
+                <div class="table-toolbar">
+                  <div class="filter-group" id="symbol-filters">
+                    <button class="filter active" data-filter="all" type="button">全部</button>
+                    <button class="filter" data-filter="function" type="button">函数</button>
+                    <button class="filter" data-filter="object" type="button">变量</button>
+                    <button class="filter" data-filter="other" type="button">其他</button>
+                  </div>
+                  <span id="symbol-result-count">0 个符号</span>
+                </div>
+                <div class="data-table-wrap">
+                  <table class="data-table">
+                    <thead><tr><th><button data-sort="name" type="button">名称</button></th><th><button data-sort="address" type="button">地址</button></th><th><button data-sort="size" type="button">大小</button></th><th>类型</th><th>所在段</th><th>模块 / 目标文件</th></tr></thead>
+                    <tbody id="symbol-table-body"></tbody>
+                  </table>
+                </div>
+                <div class="pagination"><button id="prev-page" type="button">上一页</button><span id="page-info">1 / 1</span><button id="next-page" type="button">下一页</button></div>
+              </article>
+            </div>
+
+            <div class="view hidden" id="view-sections">
+              <div class="panel-grid">
+                <article class="panel span-12 table-panel">
+                  <div class="panel-header"><div><span>SECTIONS</span><h3>段明细</h3></div><span id="section-count">0 个段 · 悬停或聚焦查看完整说明</span></div>
+                  <div class="data-table-wrap"><table class="data-table section-table"><thead><tr><th>段名</th><th>主要作用</th><th>起始地址</th><th>结束地址</th><th>大小</th><th>类别</th><th>模块 / 来源</th></tr></thead><tbody id="section-table-body"></tbody></table></div>
+                </article>
+                <article class="panel span-12">
+                  <div class="panel-header"><div><span>REGIONS</span><h3>加载区域与内部段</h3></div><span>展开模块查看 PT_LOAD 与 section 对应关系</span></div>
+                  <div class="region-cards" id="region-cards"></div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="tooltip hidden" id="chart-tooltip" role="tooltip"></div>
+    <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./assets/app.js"></script>
+  </body>
+</html>

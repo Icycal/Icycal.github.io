@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">固件视界</title>
+  <desc id="desc">带有彩色内存分区的芯片图标</desc>
+  <defs>
+    <linearGradient id="chip-stroke" x1="14" y1="14" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35D3B4" />
+      <stop offset="1" stop-color="#62A7FF" />
+    </linearGradient>
+  </defs>
+  <rect x="14" y="14" width="36" height="36" rx="8" fill="#0D1722" stroke="url(#chip-stroke)" stroke-width="3" />
+  <g fill="none" stroke="#35D3B4" stroke-linecap="round" stroke-width="3">
+    <path d="M21 8v6M32 8v6M43 8v6M21 50v6M32 50v6M43 50v6" />
+    <path d="M8 21h6M8 32h6M8 43h6M50 21h6M50 32h6M50 43h6" />
+  </g>
+  <rect x="21" y="22" width="22" height="6" rx="2" fill="#35D3B4" />
+  <rect x="21" y="30" width="14" height="6" rx="2" fill="#62A7FF" />
+  <rect x="37" y="30" width="6" height="6" rx="2" fill="#F6C75B" />
+  <rect x="21" y="38" width="9" height="4" rx="2" fill="#B68CFF" />
+  <rect x="32" y="38" width="11" height="4" rx="2" fill="#69788D" />
+</svg>

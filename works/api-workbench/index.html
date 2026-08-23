@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>接口工坊</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/styles.css?v=20260811.9" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" id="home-button" type="button" aria-label="返回项目总览">
+          <img src="./icon.svg" alt="" />
+          <span><strong>接口工坊</strong><small>API DOCUMENT WORKBENCH</small></span>
+        </button>
+        <div class="project-heading">
+          <span id="project-source" class="source-badge">本地项目</span>
+          <input id="project-name" aria-label="项目名称" value="未命名接口项目" />
+          <span id="save-state" class="save-state">已保存</span>
+        </div>
+        <div class="top-actions">
+          <button class="button ghost" id="validate-button" type="button"><span data-icon="check"></span>校验</button>
+          <button class="button ghost" id="import-button" type="button"><span data-icon="upload"></span>导入</button>
+          <button class="button primary" id="export-button" type="button"><span data-icon="download"></span>导出</button>
+          <input id="file-input" type="file" multiple accept=".json,.yaml,.yml,.md,.markdown" hidden />
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="nav-tabs" role="tablist" aria-label="项目资源">
+            <button class="nav-tab active" data-nav="apis" type="button" role="tab">接口</button>
+            <button class="nav-tab" data-nav="models" type="button" role="tab">模型</button>
+            <button class="nav-tab" data-nav="docs" type="button" role="tab">文档</button>
+          </div>
+          <div class="sidebar-tools">
+            <label class="search-box"><span data-icon="search"></span><input id="tree-search" type="search" placeholder="搜索接口、路径或模型" autocomplete="off" /></label>
+            <button class="icon-button" id="add-resource" type="button" aria-label="新增资源" title="新增资源"><span data-icon="plus"></span></button>
+          </div>
+          <div id="resource-tree" class="resource-tree" aria-live="polite"></div>
+          <div class="sidebar-footer">
+            <div><span id="api-count">0</span><small>接口</small></div>
+            <div><span id="model-count">0</span><small>模型</small></div>
+            <div><span id="reference-count">0</span><small>引用</small></div>
+          </div>
+        </aside>
+
+        <div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="调整资源侧边栏宽度" aria-orientation="vertical" tabindex="0"></div>
+
+        <main id="main-content" class="main-content" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <div id="drop-overlay" class="drop-overlay hidden" aria-hidden="true">
+      <div><span data-icon="upload"></span><strong>释放文件开始导入</strong><small>支持 Apifox JSON、OpenAPI JSON/YAML 和 Markdown</small></div>
+    </div>
+    <div id="modal-root"></div>
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+    <script type="module" src="./assets/app.js?v=20260811.12"></script>
+  </body>
+</html>
