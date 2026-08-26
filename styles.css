@@ -207,8 +207,7 @@ footer .wrap #deployNote{color:var(--accent);opacity:.85}
 /* 封面（可点击跳转） */
 .cover-link{display:block;position:relative;height:170px;cursor:pointer;overflow:hidden;
   background:linear-gradient(135deg,rgba(91,140,255,.22),rgba(124,92,255,.22));transform:translateZ(26px)}
-.cover-link.has-icon{display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,rgba(61,240,208,.14),rgba(124,92,255,.18))}
+.cover-link.has-icon{background-color:#fff;background-repeat:no-repeat;background-position:center;background-size:260%}
 .cover-link .cover-icon{max-width:62%;max-height:78%;width:auto;height:auto;display:block;
   filter:drop-shadow(0 6px 20px rgba(61,240,208,.22))}
 .cover-link .cover-media{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}

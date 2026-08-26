@@ -56,7 +56,7 @@
   function coverHTML(p){
     var href = 'work.html?slug=' + encodeURIComponent(p.slug || '') + '&v=' + VER;
     var c = p.cover || {kind:'none'};
-    var inner, badge = '', extraCls = '';
+    var inner, badge = '', extraCls = '', bgStyle = '';
     if (c.kind === 'image'){
       inner = '<img class="cover-media" src="' + esc(c.src) + '" alt="' + esc(p.title) + '">';
       badge = '<span class="kind-badge">图片</span>';
@@ -64,12 +64,14 @@
       inner = '<video class="cover-media" src="' + esc(c.src) + '" muted preload="metadata"></video><div class="cover-play">▶</div>';
       badge = '<span class="kind-badge">视频</span>';
     } else if (c.kind === 'icon'){
-      inner = '<img class="cover-icon" src="' + esc(c.src) + '" alt="' + esc(p.title) + '">';
+      // 图标作为 cover-link 自身的背景图，配合 background-size 放大并裁掉 logo 周围白边
+      bgStyle = 'background-image:url(' + esc(c.src) + ')';
       extraCls = ' has-icon';
     } else {
       inner = '<div class="cover-ph">' + esc((p.title||'?').charAt(0)) + '</div>';
     }
-    return '<a class="cover-link'+extraCls+'" href="' + href + '">' + badge + inner + '</a>';
+    var styleAttr = bgStyle ? ' style="' + bgStyle + '"' : '';
+    return '<a class="cover-link'+extraCls+'" href="'+href+'"'+styleAttr+'>'+badge+inner+'</a>';
   }
 
   var list = S.projects || [];
