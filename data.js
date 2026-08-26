@@ -120,7 +120,7 @@ window.SITE = {
       desc: "百度 DuerOS 生态完整适配层「OneApp」，聚合语音助手 / 内容 / 学习工具 / 小游戏等，已应用于小天才、华为、小寻及众多白牌儿童手表。",
       stack: "DuerOS · LVGL",
       link: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4",
-      cover: { kind: "none" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaodu.png" },
       media: { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4" },
       gallery: []
     },

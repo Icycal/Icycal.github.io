@@ -228,7 +228,7 @@ footer .wrap #deployNote{color:var(--accent);opacity:.85}
 .detail-hero .stack{color:var(--accent);font-weight:600;font-size:14px}
 .detail-body{max-width:820px;margin:0 auto;padding:0 22px;opacity:1}
 .detail-body .lead{color:var(--muted);font-size:16px;margin:18px 0 26px}
-.detail-media{max-width:100%;height:auto;width:auto;width:100%;border-radius:var(--radius);border:1px solid var(--line);display:block;background:#0c0f17;object-fit:cover;max-width:760px;margin:0 auto}
+.detail-body .detail-media{display:block;margin:0 auto;max-width:480px;max-height:55vh;width:auto;height:auto;border-radius:var(--radius);border:1px solid var(--line);background:#0c0f17;object-fit:contain}
 img{max-width:100%;height:auto}
 .detail-body img,.detail-body video,.detail-body iframe{width:100%;display:block}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:14px 0 24px}
