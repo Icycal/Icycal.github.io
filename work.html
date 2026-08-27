@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>作品详情 · 顾亚辉</title>
 <meta name="description" content="作品详情 — 静态网页 / 图片 / 视频展示" />
-<link rel="stylesheet" href="styles.css?v=dframe8" />
+<link rel="stylesheet" href="styles.css?v=dframe9" />
 </head>
 <body>
 
@@ -135,7 +135,13 @@
 
     var gallery = (p.gallery || []).filter(Boolean);
     var galleryHTML = gallery.length
-      ? '<div class="gallery">' + gallery.map(function(src){ return imgWithFallback(src, '', 'gallery-img'); }).join('') + '</div>'
+      ? '<div class="gallery">' + gallery.map(function(item){
+          // 兼容旧格式（字符串 = 图片）；新格式支持 {kind:"image"|"video", src}
+          if (typeof item === 'string') return imgWithFallback(item, '', 'gallery-img');
+          if (item && item.kind === 'video') return '<div class="gallery-video-frame"><video class="gallery-video" src="'+safeSrc(item.src)+'" controls preload="metadata"></video></div>';
+          if (item && item.kind === 'image') return imgWithFallback(item.src, '', 'gallery-img');
+          return '';
+        }).join('') + '</div>'
       : '';
 
     var isWeb = p.media && p.media.kind === 'web';

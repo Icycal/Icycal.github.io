@@ -237,6 +237,8 @@ img{max-width:100%;height:auto}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:14px 0 24px}
 .gallery img{width:100%;height:160px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:pointer;transition:transform .2s}
 .gallery img:hover{transform:translateY(-2px)}
+.gallery-video-frame{grid-column:1/-1;background:#0c0f17;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 14px;display:flex;align-items:center;justify-content:center;min-height:200px}
+.gallery-video{max-width:100%;max-height:520px;width:auto;height:auto}
 .detail-frame{width:100%;min-height:760px;height:80vh;max-height:1200px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .detail-ph{width:100%;min-height:260px;border-radius:var(--radius);border:1px dashed var(--line);
   display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;

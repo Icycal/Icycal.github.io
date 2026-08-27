@@ -131,9 +131,12 @@ window.SITE = {
       desc: "国内首款集心电与心音采集、AI 辅助分析、多参数可调于一体的智能听诊器，BLE 传输至 APP 实时展示波形并上传云端分析。",
       stack: "nRF52840 · LVGL",
       link: "",
-      cover: { kind: "none" },
-      media: { kind: "none" },
-      gallery: []
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.png", coverBg: "#0f1422", coverFit: "contain" },
+      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.png" },
+      gallery: [
+        { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.jpg" },
+        { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.mp4" }
+      ]
     },
     {
       slug: "edgebox",
