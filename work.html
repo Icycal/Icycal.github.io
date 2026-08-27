@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>作品详情 · 顾亚辉</title>
 <meta name="description" content="作品详情 — 静态网页 / 图片 / 视频展示" />
-<link rel="stylesheet" href="styles.css?v=dframe9" />
+<link rel="stylesheet" href="styles.css?v=dframe10" />
 </head>
 <body>
 
@@ -127,7 +127,7 @@
     }
     function mainMedia(m){
       m = m || {kind:'none'};
-      if (m.kind === 'image') return imgWithFallback(m.src, p.title);
+      if (m.kind === 'image') return '<div class="detail-media-frame">'+imgWithFallback(m.src, p.title, 'detail-hero-img')+'</div>';
       if (m.kind === 'video') return '<div class="detail-media-frame"><video class="detail-media" src="'+safeSrc(m.src)+'" controls preload="metadata"></video></div>';
       if (m.kind === 'web')   return '<iframe class="detail-frame" src="'+safeSrc(m.src)+'" loading="lazy"></iframe>';
       return '<div class="detail-ph">＋ 主展示素材（待补充）<small>图片 / 视频 / 静态网页，在 data.js 的 media 里配置</small></div>';
@@ -137,9 +137,9 @@
     var galleryHTML = gallery.length
       ? '<div class="gallery">' + gallery.map(function(item){
           // 兼容旧格式（字符串 = 图片）；新格式支持 {kind:"image"|"video", src}
-          if (typeof item === 'string') return imgWithFallback(item, '', 'gallery-img');
+          if (typeof item === 'string') return imgWithFallback(item, '', 'gallery-photo');
           if (item && item.kind === 'video') return '<div class="gallery-video-frame"><video class="gallery-video" src="'+safeSrc(item.src)+'" controls preload="metadata"></video></div>';
-          if (item && item.kind === 'image') return imgWithFallback(item.src, '', 'gallery-img');
+          if (item && item.kind === 'image') return imgWithFallback(item.src, '', 'gallery-photo');
           return '';
         }).join('') + '</div>'
       : '';
