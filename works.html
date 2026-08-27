@@ -36,7 +36,7 @@
   <div class="wrap">© <span id="year"></span> <span id="deployNote"></span></div>
 </footer>
 
-<script src="data.js?v=covicon2"></script>
+<script src="data.js?v=covicon3"></script>
 <script src="site.js"></script>
 <script>
 (function(){
@@ -56,25 +56,23 @@
   function coverHTML(p){
     var href = 'work.html?slug=' + encodeURIComponent(p.slug || '') + '&v=' + VER;
     var c = p.cover || {kind:'none'};
-    var inner, badge = '', extraCls = '', styleAttr = '';
+    var inner = '';
+    var badge = '';
+    var extraCls = '';
+    var styleAttr = '';
     if (c.kind === 'image'){
-      // coverFit 默认 cover（满铺封面），对裁切过白边的 logo 图用 contain 让其完整显示
-      var fit = c.coverFit === 'contain' ? 'contain' : 'cover';
-      var bg = c.coverBg || '';
-      // 对 contain 模式的封面（如裁切过的 logo），用 padding:40px 让其居中而不贴边
-      var imgStyle = fit === 'contain' ? ' object-fit:contain;width:calc(100% - 60px);max-height:calc(100% - 60px);height:auto;' : '';
-      var bgStyle = bg ? 'background:' + bg + ';' : '';
-      extraCls = fit === 'contain' ? ' has-fit-contain' : '';
       badge = '<span class="kind-badge">图片</span>';
-      inner = '<img class="cover-media" src="' + esc(c.src) + '" alt="' + esc(p.title) + '" style="' + imgStyle + '">';
-      styleAttr = bgStyle ? ' style="' + bgStyle + '"' : '';
+      var fit = c.coverFit === 'contain' ? 'contain' : 'cover';
+      extraCls = fit === 'contain' ? ' has-fit-contain' : '';
+      inner = '<img class="cover-img" data-fit="' + fit + '" src="' + esc(c.src) + '" alt="' + esc(p.title) + '">';
+      styleAttr = c.coverBg ? ' style="background:' + c.coverBg + '"' : '';
     } else if (c.kind === 'video'){
-      inner = '<video class="cover-media" src="' + esc(c.src) + '" muted preload="metadata"></video><div class="cover-play">▶</div>';
+      inner = '<video class="cover-img" data-fit="cover" src="' + esc(c.src) + '" muted preload="metadata"></video><div class="cover-play">▶</div>';
       badge = '<span class="kind-badge">视频</span>';
     } else if (c.kind === 'icon'){
-      // 图标作为 cover-link 自身的背景图，配合 background-size 放大并裁掉 logo 周围白边
-      styleAttr = ' style="background-image:url(' + esc(c.src) + ')"';
-      extraCls = ' has-icon';
+      // SVG icon: 改为 <img> + contain 显示，矢量图保持原比例不被拉伸变形
+      inner = '<img class="cover-img" data-fit="contain" src="' + esc(c.src) + '" alt="' + esc(p.title) + '">';
+      extraCls = ' has-fit-contain';
     } else {
       inner = '<div class="cover-ph">' + esc((p.title||'?').charAt(0)) + '</div>';
     }
