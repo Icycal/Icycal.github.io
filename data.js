@@ -120,7 +120,7 @@ window.SITE = {
       desc: "百度 DuerOS 生态完整适配层「OneApp」，聚合语音助手 / 内容 / 学习工具 / 小游戏等，已应用于小天才、华为、小寻及众多白牌儿童手表。",
       stack: "DuerOS · LVGL",
       link: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaodu-crop.png", coverBg: "#fff", coverFit: "contain" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaodu-crop.webp", coverBg: "#fff", coverFit: "contain" },
       media: { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4" },
       gallery: []
     },
@@ -131,10 +131,10 @@ window.SITE = {
       desc: "国内首款集心电与心音采集、AI 辅助分析、多参数可调于一体的智能听诊器，BLE 传输至 APP 实时展示波形并上传云端分析。",
       stack: "nRF52840 · LVGL",
       link: "",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.png", coverBg: "#0f1422", coverFit: "contain" },
-      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.png" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.webp", coverBg: "#0f1422", coverFit: "contain" },
+      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.webp" },
       gallery: [
-        { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.jpg" },
+        { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器-photo.webp" },
         { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.mp4" }
       ]
     },
