@@ -101,16 +101,16 @@ window.SITE = {
       stack: "AI Agent · 多用户协作 · LLM",
       link: "",
       repo: "https://github.com/Icycal/zhuge.git",
-      cover: { kind: "image", src: "works/zhuge/overview.png" },
-      media: { kind: "image", src: "works/zhuge/conversation.png" },
+      cover: { kind: "image", src: "works/zhuge/overview.webp" },
+      media: { kind: "image", src: "works/zhuge/conversation.webp" },
       gallery: [
-        "works/zhuge/slide_03.png",
-        "works/zhuge/slide_04.png",
-        "works/zhuge/slide_05.png",
-        "works/zhuge/slide_07.png",
-        "works/zhuge/slide_08.png",
-        "works/zhuge/slide_09.png",
-        "works/zhuge/slide_10.png"
+        "works/zhuge/slide_03.webp",
+        "works/zhuge/slide_04.webp",
+        "works/zhuge/slide_05.webp",
+        "works/zhuge/slide_07.webp",
+        "works/zhuge/slide_08.webp",
+        "works/zhuge/slide_09.webp",
+        "works/zhuge/slide_10.webp"
       ]
     },
     {
