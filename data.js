@@ -172,6 +172,21 @@ window.SITE = {
       gallery: []
     },
     {
+      slug: "aidk-wifi",
+      title: "AIDK 物联网平台 · WiFi 模组",
+      summary: "自连 AIDK 物联网 WiFi 模组平台：驱动与协议栈升级、HTTP / LwM2M 组件接口设计、固件框架与 OTA 体系重构。",
+      desc: "公司自有物联网平台 AIDK（基于 Cypress WiFi/BT-BLE 芯片 <原博通 bcm433xx 系列> + STM32F4）上的 WiFi 模组整体开发工作，涵盖 ALX830X / ALX850X 等模组型号。三部分工作整合如下： ①平台底座升级——将 AIDK 使用的 WiFi 驱动、操作系统及网络协议栈统一升级至最新版本，并完成稳定性验证； ②物联网组件接口设计——实现 HTTP 与 LwM2M 两套物联网接口：完善 AIDK 集成的 HTTP 协议库，实现 HTTP Digest 认证、添加 multipart/form-data 支持，并封装 HTTP POST 的 ACM（Alinket Control Message，类 AT 指令）接口；完成 AIDK LwM2M 通用模型实现，默认植入自连 WiFi 管理 Object，并改造 CoAPs 的 Block 机制以支撑模组自身的 LwM2M OTA 升级。用户无需关注 HTTP / LwM2M 协议细节，通过自连 ACM 协议即可低成本接入自连云；同时编写 AISDK（Host 端）HTTP GET/POST 与 LwM2M 通用模型 Demo 供参考； ③框架调整与固件体系——为更合理利用芯片存储资源并实现公司固件统一管理，重构 AIDK 框架；参与 OTA 扇区删除与移植；定制并实现自连固件格式 ALF（Alinket File），编写 exe 打包工具（通过 Makefile 自动将 bootloader、app、WiFi 固件及 DCT 转换为 ALF）；完成 Bootloader 2.0 升级（支持 Boot 下串口升级、跳转 App 前文件校验，提升系统稳健性）；实现自连文件系统 AFS 格式化工具，可在 PC 端直接格式化打包并下载进 Flash 使用。",
+      stack: "Cypress WiFi/BLE · STM32F4 · LwM2M / CoAPs · HTTP · OTA · RTOS",
+      link: "",
+      cover: { kind: "image", src: "works/wifimodule/alx830x.webp", coverBg: "#0f1422", coverFit: "contain" },
+      media: { kind: "image", src: "works/wifimodule/alx830x.webp" },
+      gallery: [
+        "works/wifimodule/alx830x-spec.webp",
+        "works/wifimodule/alx850x.webp",
+        "works/wifimodule/alx850x-spec.webp"
+      ]
+    },
+    {
       slug: "firmware-vision",
       title: "固件视界",
       summary: "诸葛东风外部小程序：浏览器本地解析嵌入式 ELF / MAP 文件，资源总览、地址空间图、符号搜索与 JSON 导出。",
