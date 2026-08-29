@@ -7,7 +7,7 @@
  *      - EdgeOne Pages：自动部署，推送即上线。
  *  · 作品里的图片/视频：统一放在 gu-videos 仓库（图床 / CDN），本仓库只存代码 + 配置，
  *    引用时写 jsDelivr 外链：
- *      https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/<作品slug>/<文件名>
+ *      https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/<slug>/<file>
  *    例如 ".../gu-videos@main/portfolio/zhuge/overview.webp"、
  *         ".../gu-videos@main/portfolio/stethoscope/stethoscope.mp4"。
  *    gu-videos 仓库里所有素材都在「作品集」目录下按作品 slug 分子目录存放
