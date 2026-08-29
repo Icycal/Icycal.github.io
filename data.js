@@ -7,8 +7,11 @@
  *      - EdgeOne Pages：自动部署，推送即上线。
  *  · 作品里的图片/视频：统一放在 gu-videos 仓库（图床 / CDN），本仓库只存代码 + 配置，
  *    引用时写 jsDelivr 外链：
- *      https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/<子目录>/<文件名>
- *    例如 ".../gu-videos@main/zhuge/overview.webp"、".../gu-videos@main/stethoscope.mp4"。
+ *      https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/<作品slug>/<文件名>
+ *    例如 ".../gu-videos@main/portfolio/zhuge/overview.webp"、
+ *         ".../gu-videos@main/portfolio/stethoscope/stethoscope.mp4"。
+ *    gu-videos 仓库里所有素材都在「作品集」目录下按作品 slug 分子目录存放
+ *    （xiaodu / stethoscope / zhuge / wifimodule），详见该仓库 README。
  *    ⚠️ 不要再把大文件提交进本仓库——保持站点轻薄、部署快。
  *    （例外：works/firmware-vision、works/api-workbench 这两个内嵌 demo 是完整网页，
  *     连同它们 1KB 的 icon.svg 一起留在本仓库，同源加载更稳。）
@@ -105,16 +108,16 @@ window.SITE = {
       stack: "AI Agent · 多用户协作 · LLM",
       link: "",
       repo: "https://github.com/Icycal/zhuge.git",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/overview.webp" },
-      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/conversation.webp" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/overview.webp" },
+      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/conversation.webp" },
       gallery: [
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_03.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_04.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_05.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_07.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_08.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_09.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/zhuge/slide_10.webp"
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_03.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_04.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_05.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_07.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_08.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_09.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/zhuge/slide_10.webp"
       ]
     },
     {
@@ -123,9 +126,9 @@ window.SITE = {
       summary: "百度 DuerOS 适配层「OneApp」，已落地小天才、华为、小寻等多款儿童手表。",
       desc: "百度 DuerOS 生态完整适配层「OneApp」，聚合语音助手 / 内容 / 学习工具 / 小游戏等，已应用于小天才、华为、小寻及众多白牌儿童手表。",
       stack: "DuerOS · LVGL",
-      link: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaodu-crop.webp", coverBg: "#fff", coverFit: "contain" },
-      media: { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/xiaoduwatch.mp4" },
+      link: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/xiaodu/xiaoduwatch.mp4",
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/xiaodu/xiaodu-crop.webp", coverBg: "#fff", coverFit: "contain" },
+      media: { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/xiaodu/xiaoduwatch.mp4" },
       gallery: []
     },
     {
@@ -135,11 +138,11 @@ window.SITE = {
       desc: "国内首款集心电与心音采集、AI 辅助分析、多参数可调于一体的智能听诊器，BLE 传输至 APP 实时展示波形并上传云端分析。",
       stack: "nRF52840 · LVGL",
       link: "",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.webp", coverBg: "#0f1422", coverFit: "contain" },
-      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.webp" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/stethoscope/stethoscope-main.webp", coverBg: "#0f1422", coverFit: "contain" },
+      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/stethoscope/stethoscope-main.webp" },
       gallery: [
-        { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器-photo.webp" },
-        { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/stethoscope.mp4" }
+        { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/stethoscope/stethoscope-photo.webp" },
+        { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/stethoscope/stethoscope.mp4" }
       ]
     },
     {
@@ -182,12 +185,12 @@ window.SITE = {
       desc: "公司自有物联网平台 AIDK（基于 Cypress WiFi/BT-BLE 芯片 <原博通 bcm433xx 系列> + STM32F4）上的 WiFi 模组整体开发工作，涵盖 ALX830X / ALX850X 等模组型号。三部分工作整合如下： ①平台底座升级——将 AIDK 使用的 WiFi 驱动、操作系统及网络协议栈统一升级至最新版本，并完成稳定性验证； ②物联网组件接口设计——实现 HTTP 与 LwM2M 两套物联网接口：完善 AIDK 集成的 HTTP 协议库，实现 HTTP Digest 认证、添加 multipart/form-data 支持，并封装 HTTP POST 的 ACM（Alinket Control Message，类 AT 指令）接口；完成 AIDK LwM2M 通用模型实现，默认植入自连 WiFi 管理 Object，并改造 CoAPs 的 Block 机制以支撑模组自身的 LwM2M OTA 升级。用户无需关注 HTTP / LwM2M 协议细节，通过自连 ACM 协议即可低成本接入自连云；同时编写 AISDK（Host 端）HTTP GET/POST 与 LwM2M 通用模型 Demo 供参考； ③框架调整与固件体系——为更合理利用芯片存储资源并实现公司固件统一管理，重构 AIDK 框架；参与 OTA 扇区删除与移植；定制并实现自连固件格式 ALF（Alinket File），编写 exe 打包工具（通过 Makefile 自动将 bootloader、app、WiFi 固件及 DCT 转换为 ALF）；完成 Bootloader 2.0 升级（支持 Boot 下串口升级、跳转 App 前文件校验，提升系统稳健性）；实现自连文件系统 AFS 格式化工具，可在 PC 端直接格式化打包并下载进 Flash 使用。",
       stack: "Cypress WiFi/BLE · STM32F4 · LwM2M / CoAPs · HTTP · OTA · RTOS",
       link: "",
-      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/wifimodule/alx830x.webp", coverBg: "#0f1422", coverFit: "contain" },
-      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/wifimodule/alx830x.webp" },
+      cover: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/wifimodule/alx830x.webp", coverBg: "#0f1422", coverFit: "contain" },
+      media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/wifimodule/alx830x.webp" },
       gallery: [
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/wifimodule/alx830x-spec.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/wifimodule/alx850x.webp",
-        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/wifimodule/alx850x-spec.webp"
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/wifimodule/alx830x-spec.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/wifimodule/alx850x.webp",
+        "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/portfolio/wifimodule/alx850x-spec.webp"
       ]
     },
     {
