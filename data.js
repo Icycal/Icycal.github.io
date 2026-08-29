@@ -135,7 +135,7 @@ window.SITE = {
       media: { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.webp" },
       gallery: [
         { kind: "image", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器-photo.webp" },
-        { kind: "video", src: "https://cdn.jsdelivr.net/gh/Icycal/gu-videos@main/灵鹂听诊器.mp4" }
+        { kind: "video", src: "videos/stethoscope.mp4" }
       ]
     },
     {
