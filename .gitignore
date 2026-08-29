@@ -1,0 +1,6 @@
+# 作品媒体资源（图片 / 视频）统一放在 gu-videos 仓库，经 jsDelivr CDN 引用。
+# 本仓库只存代码与配置，保持轻薄。
+# 下面这些目录若在本地仍有残留副本，一律不入库。
+works/zhuge/
+works/wifimodule/
+videos/
