@@ -129,7 +129,12 @@
     function mainMedia(m){
       m = m || {kind:'none'};
       if (m.kind === 'image') return '<div class="detail-media-frame">'+imgWithFallback(m.src, p.title, 'detail-hero-img')+'</div>';
-      if (m.kind === 'video') return '<div class="detail-media-frame"><video class="detail-media" src="'+safeSrc(m.src)+'" poster="'+safeSrc(p.cover && p.cover.src ? p.cover.src : '')+'" controls preload="none" playsinline></video></div>';
+      if (m.kind === 'video') {
+        // poster 优先级：媒体自身 poster -> 空白（让浏览器拿视频首帧）。注意：这里不要再用
+        // p.cover.src —— 那是给作品列表卡片用的缩略图（往往比例/尺寸与视频不一致），用来当
+        // video poster 会被拉伸变形。preload=metadata 让浏览器主动取一帧作首帧备选。
+        return '<div class="detail-media-frame"><video class="detail-media" src="'+safeSrc(m.src)+'" poster="'+safeSrc(m.poster || '')+'" controls preload="metadata" playsinline></video></div>';
+      }
       if (m.kind === 'web')   return '<iframe class="detail-frame" src="'+safeSrc(m.src)+'" loading="lazy"></iframe>';
       return '<div class="detail-ph">＋ 主展示素材（待补充）<small>图片 / 视频 / 静态网页，在 data.js 的 media 里配置</small></div>';
     }
@@ -139,7 +144,7 @@
       ? '<div class="gallery">' + gallery.map(function(item){
           // 兼容旧格式（字符串 = 图片）；新格式支持 {kind:"image"|"video", src}
           if (typeof item === 'string') return imgWithFallback(item, '', 'gallery-photo');
-          if (item && item.kind === 'video') return '<div class="gallery-video-frame"><video class="gallery-video" src="'+safeSrc(item.src)+'" poster="'+safeSrc(p.cover && p.cover.src ? p.cover.src : '')+'" controls preload="none" playsinline></video></div>';
+          if (item && item.kind === 'video') return '<div class="gallery-video-frame"><video class="gallery-video" src="'+safeSrc(item.src)+'" poster="'+safeSrc(item.poster || '')+'" controls preload="metadata" playsinline></video></div>';
           if (item && item.kind === 'image') return imgWithFallback(item.src, '', 'gallery-photo');
           return '';
         }).join('') + '</div>'
