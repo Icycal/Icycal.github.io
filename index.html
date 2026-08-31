@@ -27,8 +27,9 @@
   <div class="wrap">© <span id="year"></span> <span id="deployNote"></span></div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="data.js?v=covicon15"></script>
+<!-- Three.js 0.128（UMD，暴露全局 THREE）：自托管在 GitHub Pages，避免 jsDelivr 在国内超时 -->
+<script src="https://icycal.github.io/gu-videos/vendor/three-0.128.min.js"></script>
+<script src="data.js?v=covicon16"></script>
 <script src="site.js"></script>
 <script>
 (function(){
@@ -45,6 +46,7 @@
   document.getElementById('navlinks').innerHTML =
     '<a href="#about">关于</a>'+
     '<a href="works.html">作品</a>'+
+    '<a href="world.html" class="nav-3d">3D 小镇</a>'+
     '<a href="#contact">联系</a>';
 
   /* ---------- 主体渲染 ---------- */

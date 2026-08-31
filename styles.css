@@ -51,6 +51,16 @@ nav.scrolled .wrap{height:48px}
 .navlinks a:hover::after{width:100%}
 .navlinks a.active{color:var(--fg);border-bottom:2px solid var(--accent);padding-bottom:2px}
 
+/* ---- 3D 小镇入口：胶囊描边，提示这是一个「可玩」的入口 ---- */
+.navlinks a.nav-3d{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;
+  border:1px solid rgba(61,240,208,.42);color:var(--accent);font-size:13px;
+  background:linear-gradient(135deg, rgba(61,240,208,.10), rgba(124,92,255,.10));
+  transition:box-shadow .22s ease,border-color .22s ease,color .22s ease,transform .22s ease}
+.navlinks a.nav-3d::before{content:"◈";font-size:11px;opacity:.85}
+.navlinks a.nav-3d::after{display:none}   /* 胶囊不走下划线 hover */
+.navlinks a.nav-3d:hover{color:#eafff9;border-color:var(--accent);transform:translateY(-1px);
+  box-shadow:0 0 0 3px rgba(61,240,208,.12),0 6px 18px rgba(61,240,208,.18)}
+
 /* ---- hero ---- */
 header.hero{position:relative;overflow:hidden;padding:72px 0 0;text-align:left}
 #hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.6}
@@ -274,7 +284,10 @@ img{max-width:100%;height:auto}
 
 @media(max-width:640px){
   .hero h1{font-size:32px}
-  .navlinks{display:none}
+  /* 小屏原本整条导航隐藏，这里把「3D 小镇」单独留下，免得移动端找不到入口 */
+  .navlinks{display:flex;gap:10px}
+  .navlinks a:not(.nav-3d){display:none}
+  .navlinks a.nav-3d{font-size:12.5px;padding:4px 11px}
   .detail-frame{min-height:480px;height:78vh}
   .detail-media-frame{height:46vh;margin-top:14px}
   .detail-body.is-web{padding:0 12px}
