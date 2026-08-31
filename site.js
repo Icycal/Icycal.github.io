@@ -165,10 +165,14 @@
     });
   }
 
-  /* Hero 3D 粒子球（仅首页；无 Three.js 或报错则隐藏，不影响内容） */
-  if (!isMobile && !reduceMotion && typeof THREE !== 'undefined' && document.getElementById('hero-canvas')){
+  /* Hero 3D 粒子球（仅首页；无 Three.js 或报错则隐藏，不影响内容）
+     ⚠ 时序坑：#hero-canvas 是首页内联脚本用 app.innerHTML 动态创建的，
+       而 site.js 比那段内联脚本先执行，此刻 canvas 还不存在。
+       必须等 DOMContentLoaded 之后再初始化，否则粒子球永远不会出现。 */
+  function initHero3D(){
+    var canvas = document.getElementById('hero-canvas');
+    if (!canvas) return;
     try {
-      var canvas = document.getElementById('hero-canvas');
       var renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
       var scene = new THREE.Scene();
@@ -219,12 +223,23 @@
         renderer.render(scene, camera);
       })();
     } catch(err){
-      var hc = document.getElementById('hero-canvas');
-      if (hc) hc.style.display = 'none';
+      canvas.style.display = 'none';
     }
+  }
+
+  /* canvas 由页面内联脚本后创建，两种分支都要等它出现再处理 */
+  function whenHeroReady(fn){
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
+  if (!isMobile && !reduceMotion && typeof THREE !== 'undefined'){
+    whenHeroReady(initHero3D);
   } else {
-    var hc2 = document.getElementById('hero-canvas');
-    if (hc2) hc2.style.display = 'none';
+    whenHeroReady(function(){
+      var hc2 = document.getElementById('hero-canvas');
+      if (hc2) hc2.style.display = 'none';
+    });
   }
 
   /* 暴露给页面渲染脚本的小工具 */
