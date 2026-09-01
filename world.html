@@ -1,16 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>3D 职业小镇 · 顾亚辉</title>
-<meta name="description" content="以 3D 等距小镇的形式，按时间线浏览顾亚辉的六段职业经历与代表作品。" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230c0f17'/><text x='16' y='23' font-size='17' font-family='sans-serif' font-weight='bold' fill='%233df0d0' text-anchor='middle'>G</text></svg>" />
-<link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SoC 职业版图 · 顾亚辉</title>
+<link rel="stylesheet" href="styles.css?v=covicon21">
+<!-- 提前建连（真正的下载由下面的流式预取脚本发起） -->
+<link rel="preconnect" href="https://icycal.github.io" crossorigin>
+
+<script>
+/* ============================================================
+   流式预取 three.js（687KB）——必须放在 head 最前面，越早越好
+
+   为什么不用 <link rel="modulepreload">：
+     modulepreload 拿不到进度，而且会和 module 的静态 import 形成
+     两个并行请求，在慢网下等于双倍抢占带宽（实测冷启动 44 秒）。
+   这里改成自己 fetch + ReadableStream 逐块读，实时把字节数画到
+   进度条上，读完做成 Blob URL 交给 module 动态 import —— 全程只有一次下载。
+   ============================================================ */
+(function () {
+  var THREE_URL = 'https://icycal.github.io/gu-videos/vendor/three.module.min.js';
+  var APPROX = 687458;
+  window.__dl = { got: 0, total: 0, done: false, err: null, pct: 0 };
+
+  function paint(got, total) {
+    window.__dl.got = got;
+    window.__dl.total = total || 0;
+    var denom = total || APPROX;
+    var pct = Math.min(99, Math.round(got / denom * 100));
+    window.__dl.pct = pct;
+    var bar = document.getElementById('load-bar');
+    var msg = document.getElementById('load-msg');
+    var sub = document.getElementById('load-sub');
+    if (bar) bar.firstElementChild.style.width = pct + '%';
+    if (msg) msg.textContent = 'FAB · 正在载入 3D 引擎 ' + pct + '%';
+    if (sub) sub.textContent = (got / 1024).toFixed(0) + ' KB / ' + (denom / 1024).toFixed(0) + ' KB';
+  }
+  window.__paintDl = paint;
+
+  if (!window.fetch || !window.ReadableStream) {
+    window.__dl.err = 'no-stream';
+    window.__threeP = Promise.reject(new Error('no-stream'));
+    return;
+  }
+
+  /* module 里 await 这个 Promise，拿到 Blob URL 再动态 import */
+  window.__threeP = fetch(THREE_URL, { cache: 'force-cache', mode: 'cors' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var total = +(res.headers.get('content-length') || 0);
+      var got = 0, chunks = [];
+      var reader = res.body.getReader();
+      function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) {
+            var url = URL.createObjectURL(new Blob(chunks, { type: 'text/javascript' }));
+            window.__threeURL = url;
+            window.__dl.done = true;
+            window.__dl.pct = 100;
+            var bar = document.getElementById('load-bar');
+            if (bar) { bar.classList.add('done'); bar.firstElementChild.style.width = '100%'; }
+            var msg = document.getElementById('load-msg');
+            if (msg) msg.textContent = 'FAB · 正在光刻 die……';
+            var sub = document.getElementById('load-sub');
+            if (sub) sub.textContent = 'ENGINE READY · 正在构建版图';
+            return url;
+          }
+          chunks.push(r.value);
+          got += r.value.length;
+          paint(got, total);
+          return pump();
+        });
+      }
+      return pump();
+    })
+    .catch(function (e) {
+      /* 预取失败不致命，module 里会退回直接 import 远端地址 */
+      window.__dl.err = String(e && e.message || e);
+      throw e;
+    });
+})();
+</script>
 <style>
   html,body{height:100%;overflow:hidden}
   body{background:var(--bg);color:var(--fg)}
-
   #scene{position:fixed;inset:0;display:block;touch-action:none}
 
   /* ---------- 顶栏 ---------- */
@@ -30,7 +103,8 @@
   }
   .w-back:hover{border-color:var(--accent);color:var(--accent)}
   .w-title{font-size:15px;font-weight:600;letter-spacing:.3px}
-  .w-sub{font-size:12px;color:var(--muted)}
+  .w-title em{font-style:normal;color:var(--accent)}
+  .w-sub{font-size:12px;color:var(--muted);font-family:"SFMono-Regular",Consolas,monospace;letter-spacing:.4px}
   .w-tools{margin-left:auto;display:flex;gap:8px}
   .w-btn{
     padding:8px 13px;border:1px solid var(--line);border-radius:999px;
@@ -58,12 +132,12 @@
     backdrop-filter:blur(8px);transform:translate(-50%,-140%);
   }
   #tip.show{opacity:1}
-  #tip i{font-style:normal;color:var(--muted);margin-left:6px;font-size:11px}
+  #tip i{font-style:normal;color:var(--muted);margin-left:6px;font-size:11px;font-family:"SFMono-Regular",Consolas,monospace}
 
   /* ---------- 详情面板 ---------- */
   .w-panel{
-    position:fixed;top:0;right:0;bottom:0;z-index:30;width:400px;max-width:92vw;
-    background:rgba(17,21,31,.97);border-left:1px solid var(--line);
+    position:fixed;top:0;right:0;bottom:0;z-index:30;width:420px;max-width:92vw;
+    background:rgba(11,14,22,.97);border-left:1px solid var(--line);
     backdrop-filter:blur(16px);
     transform:translateX(102%);transition:transform .34s cubic-bezier(.22,.61,.36,1);
     display:flex;flex-direction:column;
@@ -71,12 +145,18 @@
   .w-panel.open{transform:translateX(0)}
   .w-panel-head{padding:22px 24px 16px;border-bottom:1px solid var(--line);position:relative}
   .w-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+  .w-type{
+    font-family:"SFMono-Regular",Consolas,monospace;font-size:10px;
+    letter-spacing:2px;color:var(--accent);margin-bottom:7px;
+    padding:3px 8px;border:1px solid currentColor;border-radius:4px;display:inline-block;
+  }
   .w-period{
     font-family:"SFMono-Regular",Consolas,monospace;font-size:11px;
-    letter-spacing:1.4px;color:var(--accent);margin-bottom:7px;
+    letter-spacing:1.4px;color:var(--muted);margin:8px 0 4px;
   }
-  .w-name{font-size:19px;font-weight:600;line-height:1.35;padding-right:32px}
-  .w-role{font-size:13px;color:var(--muted);margin-top:6px}
+  .w-name{font-size:20px;font-weight:600;line-height:1.3;padding-right:32px}
+  .w-short{font-size:12px;color:var(--muted);margin-top:5px;font-family:"SFMono-Regular",Consolas,monospace}
+  .w-role{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.55}
   .w-close{
     position:absolute;top:18px;right:18px;width:30px;height:30px;
     border:1px solid var(--line);border-radius:50%;background:transparent;
@@ -85,7 +165,7 @@
   }
   .w-close:hover{border-color:var(--accent);color:var(--accent)}
   .w-panel-body{padding:18px 24px 28px;overflow-y:auto;flex:1}
-  .w-blurb{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:22px}
+  .w-blurb{font-size:13px;color:var(--fg);line-height:1.78;margin-bottom:22px}
   .w-sec{
     font-family:"SFMono-Regular",Consolas,monospace;font-size:11px;
     letter-spacing:1.6px;color:var(--muted);margin:0 0 11px;
@@ -112,6 +192,28 @@
   }
   .w-empty{font-size:12.5px;color:var(--muted);font-style:italic}
 
+  /* ---------- CPU 内部版图（只在点 CPU Core 时出现） ---------- */
+  .w-internals{
+    margin:0 -8px 22px;padding:14px;
+    border:1px solid var(--line);border-radius:12px;
+    background:rgba(36,12,12,.4);
+  }
+  .w-internals .w-int-title{
+    font-family:"SFMono-Regular",Consolas,monospace;font-size:10px;
+    letter-spacing:1.8px;color:#F09595;margin:0 0 10px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .w-internals .w-int-title::before{
+    content:"";width:6px;height:6px;background:#E24B4A;border-radius:50%;
+    box-shadow:0 0 6px #E24B4A;
+  }
+  .w-internals svg{display:block;width:100%;height:auto}
+  .w-internals .w-int-legend{
+    margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;
+    font-size:11px;color:var(--muted);font-family:"SFMono-Regular",Consolas,monospace;
+  }
+  .w-internals .w-int-legend b{color:var(--fg);font-weight:500;margin-right:6px}
+
   /* ---------- 载入 / 降级 ---------- */
   #loading{
     position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;
@@ -125,8 +227,22 @@
     animation:spin .9s linear infinite;
   }
   @keyframes spin{to{transform:rotate(360deg)}}
-  #loading p{font-size:13px;color:var(--muted)}
+  #loading p{font-size:13px;color:var(--muted);font-family:"SFMono-Regular",Consolas,monospace;letter-spacing:1px}
   #loading .err{color:#ff8b8b;max-width:420px;text-align:center;line-height:1.7}
+
+  /* 光刻进度条：three.js 有 687KB，慢网下冷启动可能几十秒，
+     把等待显式化，别让人以为页面死了 */
+  .w-bar{
+    width:min(320px,70vw);height:3px;border-radius:999px;
+    background:rgba(93,202,165,.14);overflow:hidden;
+  }
+  .w-bar i{
+    display:block;height:100%;width:0%;border-radius:999px;
+    background:linear-gradient(90deg,#5dcaa5,#ef9f27);
+    transition:width .25s linear;
+  }
+  .w-bar.done i{background:linear-gradient(90deg,#5dcaa5,#7ee0bf)}
+  #loading .sub{font-size:11px;color:#4a5568;letter-spacing:.6px}
 
   #fallback{
     position:fixed;inset:0;z-index:35;overflow-y:auto;
@@ -135,41 +251,52 @@
   #fallback.show{display:block}
   .fb-wrap{max-width:820px;margin:0 auto}
   .fb-wrap h1{font-size:24px;margin-bottom:8px}
+  .fb-wrap h1 small{
+    font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;
+    color:var(--accent);margin-left:10px;letter-spacing:1.2px;font-weight:400;
+  }
   .fb-note{
-    font-size:13px;color:var(--muted);margin-bottom:28px;padding:12px 16px;
+    font-size:13px;color:var(--muted);margin-bottom:28px;padding:14px 16px;
     border:1px solid var(--line);border-radius:11px;background:rgba(22,27,39,.6);
+    line-height:1.7;
   }
   .fb-co{
-    border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+    border:1px solid var(--line);border-radius:14px;padding:18px 22px;
     margin-bottom:14px;background:rgba(22,27,39,.45);border-left-width:3px;
+    display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;
   }
-  .fb-co h2{font-size:17px;margin-bottom:4px}
-  .fb-co .fb-meta{font-size:12px;color:var(--accent);margin-bottom:10px;
+  .fb-chip{
+    width:64px;height:64px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;font-size:11px;font-weight:600;color:#fff;
+    text-align:center;line-height:1.2;padding:4px;font-family:"SFMono-Regular",Consolas,monospace;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+  .fb-co h2{font-size:16px;margin-bottom:3px}
+  .fb-co .fb-meta{font-size:11px;color:var(--accent);margin-bottom:8px;
     font-family:"SFMono-Regular",Consolas,monospace;letter-spacing:.8px}
-  .fb-co .fb-role{font-size:13px;color:var(--muted);margin-bottom:10px}
-  .fb-co p{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:14px}
-  .fb-links{display:flex;flex-wrap:wrap;gap:8px}
+  .fb-co .fb-role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .fb-co p{font-size:13px;color:var(--fg);line-height:1.75;margin-bottom:12px}
+  .fb-links{display:flex;flex-wrap:wrap;gap:7px}
   .fb-links a{
-    padding:6px 13px;border:1px solid var(--line);border-radius:8px;
-    font-size:12.5px;transition:.18s;
+    padding:5px 12px;border:1px solid var(--line);border-radius:7px;
+    font-size:12px;transition:.18s;
   }
   .fb-links a:hover{border-color:var(--accent);color:var(--accent)}
   .fb-links span{
-    padding:6px 13px;border:1px solid var(--line);border-radius:8px;
-    font-size:12.5px;color:var(--muted);opacity:.65;
+    padding:5px 12px;border:1px solid var(--line);border-radius:7px;
+    font-size:12px;color:var(--muted);opacity:.65;
   }
 
   @media (max-width:760px){
     .w-panel{
       top:auto;left:0;right:0;bottom:0;width:100%;max-width:100%;
-      height:74vh;border-left:none;border-top:1px solid var(--line);
+      height:78vh;border-left:none;border-top:1px solid var(--line);
       border-radius:18px 18px 0 0;transform:translateY(102%);
     }
     .w-panel.open{transform:translateY(0)}
     .w-hint{font-size:11px;gap:11px;padding:7px 13px;bottom:10px}
-    .w-title{display:none}
-    .w-panel-head{padding:18px 20px 14px}
-    .w-panel-body{padding:16px 20px 32px}
+    .fb-co{grid-template-columns:1fr}
+    .fb-chip{width:48px;height:48px;font-size:10px}
   }
 </style>
 </head>
@@ -180,8 +307,8 @@
 <div class="w-top">
   <a class="w-back" href="index.html">← 返回主页</a>
   <div>
-    <div class="w-title">3D 职业小镇</div>
-    <div class="w-sub">按时间线漫步六段经历，点房子看作品</div>
+    <div class="w-title">SoC <em>职业版图</em></div>
+    <div class="w-sub">每一段经历 = 一个 IP 模块 · 点击查看 datasheet</div>
   </div>
   <div class="w-tools">
     <button class="w-btn" id="btn-spin">自动旋转</button>
@@ -192,7 +319,7 @@
 <div class="w-hint">
   <span><b>拖拽</b> 旋转</span>
   <span><b>滚轮</b> 缩放</span>
-  <span><b>点击房子</b> 看作品</span>
+  <span><b>点击模块</b> 看 datasheet</span>
 </div>
 
 <div id="tip"></div>
@@ -200,13 +327,54 @@
 <aside class="w-panel" id="panel">
   <div class="w-panel-head">
     <div class="w-bar" id="p-bar"></div>
+    <span class="w-type" id="p-type"></span>
     <div class="w-period" id="p-period"></div>
     <div class="w-name" id="p-name"></div>
+    <div class="w-short" id="p-short"></div>
     <div class="w-role" id="p-role"></div>
     <button class="w-close" id="p-close" aria-label="关闭">×</button>
   </div>
   <div class="w-panel-body">
     <p class="w-blurb" id="p-blurb"></p>
+    <div class="w-internals" id="p-internals" hidden>
+      <p class="w-int-title">DIE TOP VIEW · 内部版图</p>
+      <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-label="CPU 内部版图">
+        <defs>
+          <marker id="ia" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M1 1L6 4L1 7" fill="none" stroke="#F09595" stroke-width="1" stroke-linecap="round"/>
+          </marker>
+        </defs>
+        <rect x="10" y="10" width="300" height="180" rx="6" fill="#1a0a0a" stroke="#A32D2D" stroke-width="1"/>
+        <text x="20" y="26" fill="#E24B4A" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">CORE DIE · 顾亚辉</text>
+        <text x="300" y="26" fill="#E24B4A" font-size="9" font-family="ui-monospace,monospace" text-anchor="end">Cortex-A class · 团队负责人</text>
+        <rect x="30" y="50" width="60" height="44" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="60" y="76" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">ALU</text>
+        <rect x="105" y="50" width="50" height="44" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="130" y="76" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">REG</text>
+        <rect x="170" y="50" width="70" height="44" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="205" y="76" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">L1 I/D Cache</text>
+        <rect x="255" y="50" width="45" height="44" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="277" y="76" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">CU</text>
+        <rect x="50" y="115" width="80" height="36" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="90" y="137" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">L2 Cache</text>
+        <rect x="150" y="115" width="100" height="36" rx="3" fill="#3c1414" stroke="#E24B4A" stroke-width=".7"/>
+        <text x="200" y="137" text-anchor="middle" fill="#F09595" font-size="10" font-weight="500">Bus Interface · AMBA</text>
+        <rect x="50" y="160" width="200" height="22" rx="3" fill="#1a0606" stroke="#791F1F" stroke-width=".5" stroke-dasharray="3 2"/>
+        <text x="150" y="175" text-anchor="middle" fill="#A32D2D" font-size="9" font-family="ui-monospace,monospace">team: 站控 · sEMS · AIBox</text>
+        <line x1="90" y1="94" x2="90" y2="115" stroke="#F09595" stroke-width=".5" marker-end="url(#ia)"/>
+        <line x1="130" y1="94" x2="130" y2="115" stroke="#F09595" stroke-width=".5" marker-end="url(#ia)"/>
+        <line x1="205" y1="94" x2="180" y2="115" stroke="#F09595" stroke-width=".5" marker-end="url(#ia)"/>
+        <line x1="277" y1="94" x2="240" y2="115" stroke="#F09595" stroke-width=".5" marker-end="url(#ia)"/>
+      </svg>
+      <div class="w-int-legend">
+        <div><b>ALU</b>算术逻辑单元</div>
+        <div><b>REG</b>寄存器文件</div>
+        <div><b>L1</b>一级缓存</div>
+        <div><b>CU</b>控制单元</div>
+        <div><b>L2</b>二级缓存</div>
+        <div><b>AMBA</b>总线接口</div>
+      </div>
+    </div>
     <p class="w-sec" id="p-works-sec">代表作品</p>
     <div class="w-works" id="p-works"></div>
     <p class="w-sec" id="p-extra-sec">其他项目</p>
@@ -216,14 +384,16 @@
 
 <div id="loading">
   <div class="w-spin"></div>
-  <p id="load-msg">正在搭建小镇…</p>
+  <p id="load-msg">FAB · 正在光刻 die……</p>
+  <div class="w-bar" id="load-bar"><i></i></div>
+  <p class="sub" id="load-sub">INIT</p>
 </div>
 
 <div id="fallback">
   <div class="fb-wrap">
-    <h1>职业时间线</h1>
+    <h1>SoC 职业版图 <small>FALLBACK · 文本模式</small></h1>
     <p class="fb-note">
-      你的浏览器不支持 WebGL，3D 小镇无法显示。下面是同样的内容，按时间线排列，点击作品可直接查看详情。
+      你的浏览器不支持 WebGL，3D 版图无法显示。下面是同样的内容，按时间线排列，点击作品可直接查看详情。
     </p>
     <div id="fb-list"></div>
   </div>
@@ -232,12 +402,10 @@
 <!-- 自检探针：把渲染结果写进 DOM，便于 headless 环境验证（正常访问时不可见） -->
 <div id="diag" hidden></div>
 
-<script src="data.js?v=covicon16"></script>
+<script src="data.js?v=covicon21"></script>
 <script>
 /* ============================================================
-   降级用的文字时间线
-   刻意放在普通 script 里：three.js 是 ES module，一旦它加载失败
-   （网络问题 / 被拦截），module 整体不会执行，降级逻辑必须能独立跑。
+   降级用的文字版图 —— 必须能在 ES module 失败时独立跑
    ============================================================ */
 (function () {
   var SITE = window.SITE || {};
@@ -263,52 +431,92 @@
   window.__writeDiag = writeDiag;
   writeDiag({ companies: COMPANIES.length, projects: PROJECTS.length });
 
+  function fbEls() {
+    return {
+      loading: document.getElementById('loading'),
+      scene: document.getElementById('scene'),
+      hint: document.querySelector('.w-hint'),
+      tools: document.querySelector('.w-tools'),
+      fb: document.getElementById('fallback')
+    };
+  }
+
+  /* 降级后 3D 又跑起来了就撤回降级 —— 慢网下守卫会误判，必须可恢复 */
+  window.hideFallback = function () {
+    if (!window.__fbShown) return;
+    var el = fbEls();
+    if (el.fb) el.fb.classList.remove('show');
+    if (el.scene) el.scene.style.display = '';
+    if (el.hint) el.hint.style.display = '';
+    if (el.tools) el.tools.style.display = '';
+    window.__fbShown = false;
+    writeDiag({ ok: true, reason: 'recovered' });
+  };
+
   window.showFallback = function (reason) {
     writeDiag({ ok: false, reason: reason || 'fallback' });
-    var loading = document.getElementById('loading');
-    var scene = document.getElementById('scene');
-    var hint = document.querySelector('.w-hint');
-    var tools = document.querySelector('.w-tools');
-    var fb = document.getElementById('fallback');
+    var el = fbEls();
+    var fb = el.fb;
     if (!fb || fb.classList.contains('show')) return;
+    window.__fbShown = true;
 
-    if (loading) loading.style.display = 'none';
-    if (scene) scene.style.display = 'none';
-    if (hint) hint.style.display = 'none';
-    if (tools) tools.style.display = 'none';
+    if (el.loading) el.loading.style.display = 'none';
+    if (el.scene) el.scene.style.display = 'none';
+    if (el.hint) el.hint.style.display = 'none';
+    if (el.tools) el.tools.style.display = 'none';
 
     var note = document.querySelector('.fb-note');
     if (note && reason) {
-      note.textContent = '3D 小镇无法显示（' + reason + '）。下面是同样的内容，按时间线排列，点击作品可直接查看详情。';
+      note.textContent = '3D 版图无法显示（' + reason + '）。下面是同样的内容，按时间线排列，点击作品可直接查看详情。';
     }
 
     var box = document.getElementById('fb-list');
     box.innerHTML = COMPANIES.map(function (c) {
       var links = (c.works || []).map(function (s) {
         var p = bySlug[s];
-        return p ? '<a href="work.html?slug=' + encodeURIComponent(s) + '">' + esc(p.title || s) + '</a>' : '';
+        return p ? '<a href="work.html?slug=' + encodeURIComponent(s) + '">' + esc(p.anonTitle || p.title || s) + '</a>' : '';
       }).join('');
       var tags = (c.extraProjects || []).map(function (t) {
         return '<span>' + esc(t) + '</span>';
       }).join('');
-      return '<div class="fb-co" style="border-left-color:' + esc(c.tint) + '">' +
-        '<h2>' + esc(c.name) + '</h2>' +
-        '<div class="fb-meta">' + esc(c.period) + '</div>' +
+      return '<div class="fb-co" style="border-left-color:' + esc(c.chipColor) + '">' +
+        '<div class="fb-chip" style="background:' + esc(c.chipColor) + '">' + esc(c.chipName) + '</div>' +
+        '<div>' +
+        '<h2>' + esc(c.chipName) + '</h2>' +
+        '<div class="fb-meta">' + esc(c.period) + ' · ' + esc(c.short) + '</div>' +
         '<div class="fb-role">' + esc(c.role) + (c.dept ? ' · ' + esc(c.dept) : '') + '</div>' +
         '<p>' + esc(c.blurb) + '</p>' +
         '<div class="fb-links">' + links + tags + '</div>' +
+        '</div>' +
         '</div>';
     }).join('');
     fb.classList.add('show');
   };
 })();
 </script>
-<script type="module">
-/* 标记模块已开始执行：外面的超时守卫据此判断
-   ——「还没下载完」和「已经在建场景了」要区别对待，后者应多给点时间 */
-window.__worldStarted = true;
 
-import * as THREE from 'https://icycal.github.io/gu-videos/vendor/three.module.min.js';
+<script type="module">
+/* 注意：ES module 的 *静态* import 是提升的，模块体第一行要等 three.js
+   下载完才执行——所以「模块已开始」这个信号永远晚于网络，拿它做超时判断必然误判。
+   这里改成动态 import：先 await head 里那个带进度的流式预取，拿 Blob URL 加载，
+   全程只下一份 three.js，失败才回退远端地址。 */
+const THREE_URL = 'https://icycal.github.io/gu-videos/vendor/three.module.min.js';
+
+async function loadThree() {
+  if (window.__threeP) {
+    try {
+      const blobUrl = await window.__threeP;
+      return await import(blobUrl);
+    } catch (e) {
+      console.warn('[soc] 预取加载失败，回退远端直连：', e && e.message);
+    }
+  }
+  return await import(THREE_URL);
+}
+
+(async function () {
+const THREE = await loadThree();
+window.__worldStarted = true;
 
 /* ============================================================
    数据
@@ -319,8 +527,14 @@ const PROJECTS = SITE.projects || [];
 const bySlug = {};
 PROJECTS.forEach(p => { bySlug[p.slug] = p; });
 
+if (!COMPANIES.length) {
+  console.error('[soc] no companies data');
+  if (window.showFallback) window.showFallback('数据缺失');
+  throw new Error('no companies');
+}
+
 /* ============================================================
-   WebGL 可用性检测 —— 不支持就降级成纯文字时间线
+   WebGL 可用性检测
    ============================================================ */
 function hasWebGL() {
   try {
@@ -329,20 +543,20 @@ function hasWebGL() {
       (c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl')));
   } catch (e) { return false; }
 }
-
-if (!hasWebGL() || !COMPANIES.length) { window.showFallback(); }
-
-/* ============================================================
-   如果支持 WebGL，开始搭 3D 场景
-   ============================================================ */
-if (hasWebGL() && COMPANIES.length) {
-  try { boot(); }
-  catch (err) {
-    console.error('[world] boot failed:', err);
-    if (window.showFallback) window.showFallback('场景初始化失败');
-  }
+if (!hasWebGL()) {
+  if (window.showFallback) window.showFallback('浏览器不支持 WebGL');
+  throw new Error('no WebGL');
 }
 
+try { boot(); }
+catch (err) {
+  console.error('[soc] boot failed:', err);
+  if (window.showFallback) window.showFallback('场景初始化失败');
+}
+
+/* ============================================================
+   主程序
+   ============================================================ */
 function boot() {
   const canvas = document.getElementById('scene');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -350,34 +564,40 @@ function boot() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+  /* 傍晚调色：电影感曲线 + 略提曝光，让暖光窗与夕阳主光更扎实 */
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.18;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0b0e16);
-  scene.fog = new THREE.Fog(0x0b0e16, 78, 165);
+  /* 暮色天空：上深紫红，雾底色余晖橙，远处与天空自然衔接 */
+  scene.background = new THREE.Color(0x3a1f4a);
+  scene.fog = new THREE.Fog(0x8a4a4a, 85, 240);
 
-  /* ---------- 等距正交相机 ---------- */
-  let frustum = 46;
+  /* ---------- 等距正交相机（场景始终看向原点） ---------- */
+  let frustum = 38;
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 600);
 
-  const target = new THREE.Vector3(0, 3, 0);
-  const targetGoal = new THREE.Vector3(0, 3, 0);
+  const target = new THREE.Vector3(0, 4, 0);
+  const targetGoal = new THREE.Vector3(0, 4, 0);
   let theta = Math.PI * 0.25;
-  let phi = Math.atan(Math.SQRT2);   // 54.7° —— 标准等距仰角
+  let phi = Math.atan(Math.SQRT2);   // 54.7°  标准等距仰角
   let autoSpin = false;
 
-  const DEF = { theta, phi, target: new THREE.Vector3(0, 3, 0), frustum: 46 };
+  const DEF = { theta, phi, target: new THREE.Vector3(0, 4, 0), frustum: 38 };
 
   function resize() {
     const w = innerWidth, h = innerHeight;
     renderer.setSize(w, h, false);
     const a = w / h;
-    camera.left = -frustum * a; camera.right = frustum * a;
-    camera.top = frustum; camera.bottom = -frustum;
+    camera.left = -frustum * a;
+    camera.right = frustum * a;
+    camera.top = frustum;
+    camera.bottom = -frustum;
     camera.updateProjectionMatrix();
   }
 
   function updateCamera() {
-    const r = 130;
+    const r = 120;
     camera.position.set(
       target.x + r * Math.sin(phi) * Math.sin(theta),
       target.y + r * Math.cos(phi),
@@ -386,545 +606,1182 @@ function boot() {
     camera.lookAt(target);
   }
 
-  /* ---------- 灯光：黄昏 + 冷色环境 ---------- */
-  scene.add(new THREE.AmbientLight(0x5a6a94, 1.05));
-  const hemi = new THREE.HemisphereLight(0x8fb6ff, 0x1b2b22, 0.62);
+  /* ---------- 灯光（夕阳暮色配置） ---------- */
+  /* 暖橙红环境光：让房子阴影面也有日落的色温，不死黑 */
+  scene.add(new THREE.AmbientLight(0xc87864, 0.55));
+
+  /* 半球光：天空暖橙（夕阳）+ 地面深酒红（被夕阳烘热的砂土） */
+  const hemi = new THREE.HemisphereLight(0xffa860, 0x3a1820, 0.85);
   scene.add(hemi);
 
-  const sun = new THREE.DirectionalLight(0xffd7a8, 1.85);
-  sun.position.set(38, 52, 26);
+  /* 主光：夕阳（强烈暖橙，从西方低位斜射） */
+  const sun = new THREE.DirectionalLight(0xff8c4a, 2.2);
+  sun.position.set(-32, 26, 38);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.near = 1;
-  sun.shadow.camera.far = 190;
-  const S = 62;
+  sun.shadow.camera.far = 220;
+  const S = 75;
   sun.shadow.camera.left = -S; sun.shadow.camera.right = S;
   sun.shadow.camera.top = S; sun.shadow.camera.bottom = -S;
-  sun.shadow.bias = -0.0006;
-  sun.shadow.normalBias = 0.028;
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.02;
+  /* 夕阳的渲染颜色偏暖红，让阴影里带一点酒红，而不是纯灰 */
+  sun.shadow.radius = 3.2;
   scene.add(sun);
 
-  /* 夜色补光，让背光面不死黑 */
-  const rim = new THREE.DirectionalLight(0x7c5cff, 0.5);
-  rim.position.set(-34, 22, -30);
+  /* 紫红补光：东方天空的余晖反射，给背光面一点紫粉 */
+  const rim = new THREE.DirectionalLight(0xff5080, 0.55);
+  rim.position.set(34, 18, -28);
   scene.add(rim);
 
+  /* 顶部一点冷紫天光（来自暮色天空的最高处，避免最顶面呆滞） */
+  const sky = new THREE.DirectionalLight(0xc0a8ff, 0.35);
+  sky.position.set(0, 50, 0);
+  scene.add(sky);
+
+  /* CPU 内部脉冲光（红色，置于核心内部） */
+  const cpuCore = new THREE.PointLight(0xff4a48, 3.2, 45, 1.4);
+  cpuCore.position.set(0, 5, 0);
+  scene.add(cpuCore);
+
+  /* CPU 红色辉光（贴近 CPU 的小光晕，避免远距离看见的暗棕色球） */
+  const cpuGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(8, 20, 14),
+    new THREE.MeshBasicMaterial({ color: 0xff5040, transparent: true, opacity: 0.18, depthWrite: false })
+  );
+  cpuGlow.position.set(0, 5.5, 0);
+  scene.add(cpuGlow);
+
   /* ============================================================
-     建模工具
+     工具
      ============================================================ */
   const mat = (color, opt) => new THREE.MeshStandardMaterial(
     Object.assign({ color: new THREE.Color(color), roughness: .82, metalness: .04 }, opt || {}));
 
-  /* 人字屋顶（两坡 + 两片山墙） */
-  function gableRoof(w, d, h, rh) {
-    const hw = w / 2, hd = d / 2, ty = h + rh;
-    const v = new Float32Array([
-      /* 左坡（法线朝左上） */
-      -hw, h, -hd, -hw, h, hd, 0, ty, hd,
-      -hw, h, -hd, 0, ty, hd, 0, ty, -hd,
-      /* 右坡（法线朝右上） */
-      hw, h, hd, hw, h, -hd, 0, ty, -hd,
-      hw, h, hd, 0, ty, -hd, 0, ty, hd,
-      /* 前山墙（法线朝 +Z） */
-      -hw, h, hd, hw, h, hd, 0, ty, hd,
-      /* 后山墙（法线朝 -Z） */
-      hw, h, -hd, -hw, h, -hd, 0, ty, -hd
-    ]);
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(v, 3));
-    g.computeVertexNormals();
-    return g;
-  }
-
-  /* 确定性伪随机，保证每次刷新树的位置一致 */
   function rnd(seed) {
     const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
     return x - Math.floor(x);
   }
 
-  /* 路牌：canvas 画字 → 贴图 → 立在柱子前 */
-  function makeSign(title, sub, tint) {
+  /* ============================================================
+     1. 硅晶圆 die 衬底
+     ============================================================ */
+  function makeDieSubstrate() {
+    const SIZE = 140;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024; canvas.height = 1024;
+    const x = canvas.getContext('2d');
+
+    /* 深紫红底色（被夕阳烤热的硅片） */
+    x.fillStyle = '#2a1820';
+    x.fillRect(0, 0, 1024, 1024);
+
+    /* 中心略亮、边缘暗的暖橙径向晕（夕阳投射在 Die 中心） */
+    const grad = x.createRadialGradient(512, 512, 60, 512, 512, 720);
+    grad.addColorStop(0, 'rgba(255,160,80,.22)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = grad;
+    x.fillRect(0, 0, 1024, 1024);
+
+    /* 细网格（暖金色） */
+    x.strokeStyle = 'rgba(255,180,100,0.08)';
+    x.lineWidth = 1;
+    for (let i = 0; i <= 32; i++) {
+      const p = i * 32;
+      x.beginPath(); x.moveTo(p, 0); x.lineTo(p, 1024); x.stroke();
+      x.beginPath(); x.moveTo(0, p); x.lineTo(1024, p); x.stroke();
+    }
+
+    /* die 内框虚线（暖金） */
+    x.strokeStyle = 'rgba(255,180,100,0.42)';
+    x.lineWidth = 1.5;
+    x.setLineDash([10, 8]);
+    x.strokeRect(40, 60, 944, 904);
+    x.setLineDash([]);
+
+    /* 角标文字（暖金） */
+    x.fillStyle = 'rgba(255,180,100,0.62)';
+    x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    x.fillText('DIE — SoC: 顾亚辉', 60, 50);
+    x.fillText('FAB 2014 → NOW', 1024 - 60, 50);
+    x.font = '20px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    x.fillStyle = 'rgba(255,180,100,0.45)';
+    x.fillText('LAYER M1–M5  ·  NODE 28nm  ·  REV 0x0CAFE', 60, 994);
+    x.fillText('PWR ON · CLK OK · BUS ACTIVE', 1024 - 60, 994);
+
+    /* 四角小十字标记（光刻定位标记，暖金） */
+    x.strokeStyle = 'rgba(255,180,100,0.62)';
+    x.lineWidth = 1.2;
+    [[60, 100], [964, 100], [60, 940], [964, 940]].forEach(([cx, cy]) => {
+      x.beginPath(); x.moveTo(cx - 8, cy); x.lineTo(cx + 8, cy); x.stroke();
+      x.beginPath(); x.moveTo(cx, cy - 8); x.lineTo(cx, cy + 8); x.stroke();
+      x.beginPath(); x.arc(cx, cy, 4, 0, Math.PI * 2); x.stroke();
+    });
+
+    /* 边角方位注解 */
+    x.fillStyle = 'rgba(255,180,100,0.42)';
+    x.font = '16px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    x.fillText('← NORTH', 90, 100);
+    x.fillText('EAST →', 1024 - 200, 100);
+    x.fillText('SOUTH ↓', 90, 928);
+    x.fillText('WEST ←', 1024 - 170, 928);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+
+    const geo = new THREE.PlaneGeometry(SIZE, SIZE);
+    const m = new THREE.MeshBasicMaterial({ map: tex });
+    const mesh = new THREE.Mesh(geo, m);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0;
+    mesh.receiveShadow = true;
+    return mesh;
+  }
+  scene.add(makeDieSubstrate());
+
+  /* ============================================================
+     2. 总线走线（金色，从 CPU 向四个模块）
+     ============================================================ */
+  function makeBusTrace(x1, z1, x2, z2) {
+    /* 在 die 表面铺一条窄矩形作为"trace" */
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    const w = 1.2;          // 走线宽度
+    const geo = new THREE.PlaneGeometry(len, w);
+    const m = new THREE.MeshStandardMaterial({
+      color: 0xef9f27, emissive: 0xef9f27, emissiveIntensity: 0.4,
+      roughness: .35, metalness: .8
+    });
+    const mesh = new THREE.Mesh(geo, m);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set((x1 + x2) / 2, 0.02, (z1 + z2) / 2);
+    mesh.rotation.z = -Math.atan2(z2 - z1, x2 - x1);
+    mesh.receiveShadow = true;
+    return mesh;
+  }
+
+  /* 总线先留位，等模块位置算好后添加 */
+  const busSpokes = [];
+  function buildBusSpokes(modulePositions) {
+    busSpokes.forEach((m) => scene.remove(m));
+    busSpokes.length = 0;
+    modulePositions.forEach((p) => {
+      const spoke = makeBusTrace(0, 0, p.x, p.z);
+      scene.add(spoke);
+      busSpokes.push(spoke);
+    });
+  }
+
+  /* 总线交叉点（die 中心十字） */
+  function makeBusHub() {
     const g = new THREE.Group();
+    const hub = new THREE.Mesh(
+      new THREE.CircleGeometry(3.5, 24),
+      new THREE.MeshStandardMaterial({ color: 0xef9f27, emissive: 0xef9f27, emissiveIntensity: 0.5, roughness: .3, metalness: .85 })
+    );
+    hub.rotation.x = -Math.PI / 2;
+    hub.position.y = 0.04;
+    g.add(hub);
+    /* 4 个箭头，指示 4 路方向 */
+    [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((rot) => {
+      const arrow = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.6, 0.5),
+        new THREE.MeshStandardMaterial({ color: 0xef9f27, emissive: 0xef9f27, emissiveIntensity: 0.7, roughness: .3, metalness: .8 })
+      );
+      arrow.rotation.x = -Math.PI / 2;
+      arrow.rotation.z = -rot;
+      arrow.position.set(Math.sin(rot) * 5, 0.05, Math.cos(rot) * 5);
+      g.add(arrow);
+    });
+    return g;
+  }
+  const busHub = makeBusHub();
+  scene.add(busHub);
+
+  /* ============================================================
+     3. 去耦电容（圆柱体散布在 die 上）
+     ============================================================ */
+  function makeDecouplingCaps() {
+    const g = new THREE.Group();
+    const topMat = new THREE.MeshStandardMaterial({ color: 0xb4b2a9, metalness: .85, roughness: .25 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x222a2f, metalness: .15, roughness: .85 });
+    for (let i = 0; i < 60; i++) {
+      let x, z, ok = false, tries = 0;
+      while (!ok && tries++ < 20) {
+        x = (rnd(i * 7 + 1) - 0.5) * 110;
+        z = (rnd(i * 11 + 3) - 0.5) * 110;
+        /* 避开 4 个模块位置（半径 18 内）和中央 CPU（半径 22 内） */
+        ok = Math.hypot(x, z) > 22 && Math.abs(x) > 18 && Math.abs(z) > 18;
+      }
+      if (!ok) continue;
+      const cap = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(.55, .55, 1.1, 12), bodyMat);
+      body.position.y = .55;
+      cap.add(body);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(.55, .55, .15, 12), topMat);
+      top.position.y = 1.18;
+      cap.add(top);
+      cap.position.set(x, 0, z);
+      cap.castShadow = true;
+      cap.receiveShadow = true;
+      g.add(cap);
+    }
+    return g;
+  }
+  scene.add(makeDecouplingCaps());
+
+  /* ============================================================
+     4. 模块顶面贴图（chipName + 类型图标）
+     ============================================================ */
+  function makeChipTopTexture(co) {
     const c = document.createElement('canvas');
-    c.width = 320; c.height = 108;
+    c.width = 512; c.height = 512;
     const x = c.getContext('2d');
-    x.fillStyle = '#141926'; x.fillRect(0, 0, 320, 108);
-    x.fillStyle = tint; x.fillRect(0, 0, 320, 5);
-    x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.fillStyle = '#eef3fa';
-    x.font = '600 40px "PingFang SC","Microsoft YaHei",sans-serif';
-    x.fillText(title, 160, 44);
-    x.fillStyle = '#93a6c4';
-    x.font = '26px "SFMono-Regular",Consolas,monospace';
-    x.fillText(sub, 160, 84);
+
+    /* 渐变底色：从模块主色淡到 accent */
+    const grad = x.createLinearGradient(0, 0, 512, 512);
+    grad.addColorStop(0, co.chipColor);
+    grad.addColorStop(1, co.accent);
+    x.fillStyle = grad;
+    x.fillRect(0, 0, 512, 512);
+
+    /* 边框 + 内框 */
+    x.strokeStyle = 'rgba(0,0,0,.35)';
+    x.lineWidth = 6;
+    x.strokeRect(8, 8, 496, 496);
+    x.strokeStyle = 'rgba(255,255,255,.25)';
+    x.lineWidth = 1.5;
+    x.strokeRect(20, 20, 472, 472);
+
+    /* 类型标签 */
+    x.fillStyle = 'rgba(0,0,0,.6)';
+    x.fillRect(20, 20, 110, 28);
+    x.fillStyle = co.accent;
+    x.font = '600 18px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    x.textBaseline = 'middle';
+    x.fillText(co.chipType.toUpperCase(), 32, 35);
+
+    /* 模块名（大字） */
+    x.fillStyle = '#0b1117';
+    x.font = '700 56px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.textAlign = 'center';
+    x.fillText(co.chipName, 256, 200);
+
+    /* 类型图标（按 chipType 画不同图案） */
+    x.fillStyle = 'rgba(11,17,23,.7)';
+    x.strokeStyle = 'rgba(11,17,23,.8)';
+    x.lineWidth = 4;
+    if (co.chipType === 'io') {
+      /* I/O：8 个引脚 */
+      for (let i = 0; i < 8; i++) {
+        const py = 290 + i * 22;
+        x.fillRect(60, py, 32, 8);
+        x.fillRect(420, py, 32, 8);
+      }
+      x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+      x.fillStyle = 'rgba(11,17,23,.7)';
+      x.fillText('8 × GPIO', 256, 295);
+      x.fillText('UART / I²C / SPI', 256, 330);
+    } else if (co.chipType === 'connectivity') {
+      /* WiFi：信号波纹 */
+      x.beginPath(); x.arc(256, 340, 50, Math.PI, 0); x.stroke();
+      x.beginPath(); x.arc(256, 340, 70, Math.PI, 0); x.stroke();
+      x.beginPath(); x.arc(256, 340, 90, Math.PI, 0); x.stroke();
+      x.beginPath(); x.arc(256, 340, 8, 0, Math.PI * 2); x.fill();
+      x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+      x.fillStyle = 'rgba(11,17,23,.7)';
+      x.fillText('2.4G / 5G / BLE', 256, 380);
+    } else if (co.chipType === 'signal') {
+      /* 音频：正弦波 */
+      x.lineWidth = 5;
+      x.beginPath();
+      for (let i = 0; i < 360; i++) {
+        const px = 96 + i * (320 / 360);
+        const py = 340 + Math.sin(i * 0.08) * 30;
+        if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+      }
+      x.stroke();
+      x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+      x.fillStyle = 'rgba(11,17,23,.7)';
+      x.fillText('Audio Codec', 256, 410);
+      x.fillText('DSP Pipeline', 256, 440);
+    } else if (co.chipType === 'accelerator') {
+      /* NPU：神经网络 */
+      const nodes = [[160, 300], [160, 360], [160, 420], [256, 330], [256, 390], [352, 360]];
+      const out = [[256, 360]];
+      x.strokeStyle = 'rgba(11,17,23,.5)';
+      x.lineWidth = 1.2;
+      nodes.forEach((n1) => nodes.forEach((n2) => {
+        if (Math.random() > .55 && n1 !== n2) {
+          x.beginPath(); x.moveTo(n1[0], n1[1]); x.lineTo(n2[0], n2[1]); x.stroke();
+        }
+      }));
+      x.fillStyle = 'rgba(11,17,23,.85)';
+      nodes.forEach((n) => { x.beginPath(); x.arc(n[0], n[1], 6, 0, Math.PI * 2); x.fill(); });
+      x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+      x.fillStyle = 'rgba(11,17,23,.7)';
+      x.fillText('AI Inference', 256, 470);
+    } else if (co.chipType === 'core') {
+      /* CPU：版本号 */
+      x.font = '600 22px ui-monospace, "SFMono-Regular", Consolas, monospace';
+      x.fillStyle = 'rgba(11,17,23,.75)';
+      x.fillText('Cortex-A class', 256, 320);
+      x.fillText('32-bit / 64-bit', 256, 360);
+      x.fillText('CLK: ACTIVE', 256, 400);
+    }
+
+    /* 角落小标识 */
+    x.fillStyle = 'rgba(11,17,23,.5)';
+    x.font = '18px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    x.textAlign = 'left';
+    x.fillText('•', 32, 488);
+    x.textAlign = 'right';
+    x.fillText('•', 480, 488);
+
     const tex = new THREE.CanvasTexture(c);
     if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
-    const board = new THREE.Mesh(
-      new THREE.PlaneGeometry(4.2, 1.42),
-      new THREE.MeshBasicMaterial({ map: tex })
-    );
-    board.position.y = 2.55;
-    g.add(board);
-    const pole = new THREE.Mesh(
-      new THREE.CylinderGeometry(.11, .11, 2.6, 8),
-      mat('#2b3346', { roughness: .95 })
-    );
-    pole.position.y = 1.05;
-    pole.castShadow = true;
-    g.add(pole);
-    return g;
-  }
-
-  /* 一棵树 */
-  function makeTree(scale) {
-    const g = new THREE.Group();
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(.22 * scale, .3 * scale, 1.9 * scale, 7),
-      mat('#3d3226', { roughness: .96 })
-    );
-    trunk.position.y = .95 * scale;
-    trunk.castShadow = true;
-    g.add(trunk);
-    const green = ['#2f6b45', '#27603c', '#35734c'][Math.floor(rnd(scale * 31) * 3)];
-    for (let i = 0; i < 3; i++) {
-      const r = (1.5 - i * .34) * scale;
-      const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(r, 1.5 * scale, 8),
-        mat(green, { roughness: .92 })
-      );
-      cone.position.y = (2.0 + i * .92) * scale;
-      cone.rotation.y = rnd(scale * 7 + i) * 6.28;
-      cone.castShadow = true;
-      g.add(cone);
-    }
-    return g;
+    return tex;
   }
 
   /* ============================================================
-     地面 + 道路
+     5. IP 模块（通用版 —— 除 CPU Core 外都走这条）
      ============================================================ */
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(320, 320),
-    mat('#1d3327', { roughness: .98 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  const road = new THREE.Mesh(
-    new THREE.PlaneGeometry(78, 6.4),
-    mat('#2a3040', { roughness: .95 })
-  );
-  road.rotation.x = -Math.PI / 2;
-  road.position.y = 0.02;
-  road.receiveShadow = true;
-  scene.add(road);
-
-  /* 路中央的虚线 */
-  for (let i = -34; i <= 34; i += 4.6) {
-    const dash = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.3, .26),
-      new THREE.MeshBasicMaterial({ color: 0x4a5570 })
-    );
-    dash.rotation.x = -Math.PI / 2;
-    dash.position.set(i, 0.04, 0);
-    scene.add(dash);
-  }
-
-  /* ============================================================
-     房子：沿主路两侧 S 形排布（时间顺序）
-     北侧 z=-13 由西向东，南侧 z=+13 由东向西
-     ============================================================ */
-  const SLOT_X = [-21, 0, 21];
-  const houses = [];
-
-  COMPANIES.forEach((co, i) => {
-    const north = i < 3;
-    const k = north ? i : (COMPANIES.length - 1 - i);   // 南侧反向，形成 S 形
-    const x = SLOT_X[k % 3];
-    const z = north ? -13 : 13;
-    const n = (co.works || []).length + (co.extraProjects || []).length;
-    const w = 7.2 + Math.min(n, 8) * .42;
-    const d = 6.4 + Math.min(n, 8) * .30;
-    const h = 4.4 + Math.min(n, 8) * .40;
-    const rh = 3.0 + Math.min(n, 8) * .18;
-
+  function makeIPModule(co) {
     const g = new THREE.Group();
-    g.position.set(x, 0, z);
-    /* 南侧房子转 180°，门朝路 */
-    if (!north) g.rotation.y = Math.PI;
+    g.userData = { co, type: 'ip' };
 
-    /* 地基 */
-    const base = new THREE.Mesh(
-      new THREE.BoxGeometry(w + 1.5, .5, d + 1.5),
-      mat('#2c3446', { roughness: .95 })
+    /* 主体（深色衬底 + 模块顶面） */
+    const W = 13, D = 13, H = 4.5;
+
+    const substrate = new THREE.Mesh(
+      new THREE.BoxGeometry(W + 0.4, 0.6, D + 0.4),
+      new THREE.MeshStandardMaterial({ color: 0x1a2028, metalness: .3, roughness: .75 })
     );
-    base.position.y = .25;
-    base.receiveShadow = true; base.castShadow = true;
-    g.add(base);
+    substrate.position.y = 0.3;
+    substrate.castShadow = true;
+    substrate.receiveShadow = true;
+    g.add(substrate);
 
-    /* 主体 */
     const body = new THREE.Mesh(
-      new THREE.BoxGeometry(w, h, d),
-      mat(co.tint, { roughness: .72 })
+      new THREE.BoxGeometry(W, H, D),
+      new THREE.MeshStandardMaterial({ color: co.chipColor, roughness: .55, metalness: .15 })
     );
-    body.position.y = .5 + h / 2;
-    body.castShadow = true; body.receiveShadow = true;
+    body.position.y = 0.6 + H / 2;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    body.userData.co = co;
+    body.userData.type = 'module';
     g.add(body);
 
-    /* 屋顶 */
-    const roof = new THREE.Mesh(gableRoof(w, d, .5 + h, rh), mat(co.roof, { roughness: .8 }));
-    roof.castShadow = true;
-    g.add(roof);
+    /* ============================================================
+       升级：暖色窗户 + 前门 + 屋顶尖顶 + 屋顶招牌
+       ============================================================ */
 
-    /* 烟囱 */
-    const chim = new THREE.Mesh(
-      new THREE.BoxGeometry(.85, 2.1, .85),
-      mat('#3a4256', { roughness: .9 })
+    /* 暖色窗户材质（共用）—— 前后面各 2 行 × 3 列 */
+    const windowMat = new THREE.MeshStandardMaterial({
+      color: 0xffe0a0, emissive: 0xffaa50, emissiveIntensity: 1.1,
+      roughness: .35, metalness: .05
+    });
+    /* 窗户框（让窗户有一点立体感） */
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: 0x3a2018, roughness: .7, metalness: .25
+    });
+    const Ww = 1.7, Wh = 1.4, Wgap = 1.0;
+    [-1, 1].forEach((dz) => {
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 3; col++) {
+          const xOff = -((3 - 1) / 2) * (Ww + Wgap) + col * (Ww + Wgap);
+          const yOff = 1.6 + row * 1.7;
+          /* 窗框（背板） */
+          const frame = new THREE.Mesh(
+            new THREE.BoxGeometry(Ww + 0.2, Wh + 0.2, 0.15),
+            frameMat
+          );
+          frame.position.set(xOff, 0.6 + yOff, dz * (D / 2 + 0.075));
+          g.add(frame);
+          /* 发光窗 */
+          const win = new THREE.Mesh(
+            new THREE.BoxGeometry(Ww, Wh, 0.08),
+            windowMat
+          );
+          win.position.set(xOff, 0.6 + yOff, dz * (D / 2 + 0.18));
+          g.add(win);
+        }
+      }
+    });
+
+    /* 前门（暖橙色自发光） */
+    const doorMat = new THREE.MeshStandardMaterial({
+      color: 0xffa050, emissive: 0xff8030, emissiveIntensity: 0.85,
+      roughness: .55, metalness: .1
+    });
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.4, 0.12), doorMat);
+    door.position.set(0, 0.6 + 1.2, D / 2 + 0.18);
+    g.add(door);
+    /* 门顶小雨棚 */
+    const canopy = new THREE.Mesh(
+      new THREE.BoxGeometry(2.6, 0.15, 0.9),
+      new THREE.MeshStandardMaterial({ color: 0x4a1a18, roughness: .6, metalness: .3 })
     );
-    chim.position.set(w * .27, .5 + h + rh * .78, -d * .16);
-    chim.castShadow = true;
-    g.add(chim);
+    canopy.position.set(0, 0.6 + 2.6, D / 2 + 0.55);
+    g.add(canopy);
 
-    /* 门（暖色发光，像屋里亮着灯） */
-    const door = new THREE.Mesh(
-      new THREE.BoxGeometry(1.55, 2.5, .18),
+    /* 屋顶尖顶（人字顶）—— 用 BufferGeometry 自定义 4 面山墙+脊 */
+    const roofH = 3.6;
+    /* 屋顶瓦面材质（暖红） */
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: 0x6a2218, roughness: .55, metalness: .1, side: THREE.DoubleSide
+    });
+    /* 山墙外侧色（取 chipColor 加深） */
+    const gableColor = new THREE.Color(co.chipColor).multiplyScalar(0.5);
+
+    /* 人字顶前后两块斜面（基于三角形 BufferGeometry） */
+    function makeSlope(dz) {
+      const yTop = 0.6 + H + roofH;
+      const yBot = 0.6 + H;
+      const zEdge = dz * (D / 2 + 0.4);
+      const v = new Float32Array([
+        /* 三角形：左下-右下-中上 */
+        -(W / 2 + 0.4), yBot, zEdge,
+         (W / 2 + 0.4), yBot, zEdge,
+         0,                yTop, zEdge
+      ]);
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(v, 3));
+      g.computeVertexNormals();
+      return new THREE.Mesh(g, roofMat);
+    }
+    /* 双侧山墙（左右，封闭侧面） */
+    function makeGable(dx) {
+      const yTop = 0.6 + H + roofH;
+      const yBot = 0.6 + H;
+      const halfD = D / 2 + 0.4;
+      const v = new Float32Array([
+        dx * (W / 2 + 0.4), yBot,  halfD,
+        dx * (W / 2 + 0.4), yBot, -halfD,
+        dx * (W / 2 + 0.4), yTop,  0
+      ]);
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(v, 3));
+      g.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({
+        color: gableColor, roughness: .65, metalness: .15, side: THREE.DoubleSide
+      });
+      return new THREE.Mesh(g, mat);
+    }
+    g.add(makeSlope(1));
+    g.add(makeSlope(-1));
+    g.add(makeGable(1));
+    g.add(makeGable(-1));
+
+    /* 屋脊小横梁（盖住两块坡的接缝） */
+    const ridge = new THREE.Mesh(
+      new THREE.BoxGeometry(W + 1, 0.22, 0.5),
+      roofMat
+    );
+    ridge.position.set(0, 0.6 + H + roofH + 0.05, 0);
+    g.add(ridge);
+
+    /* 屋顶招牌（canvas 贴片，写公司名称） */
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 512; signCanvas.height = 176;
+    const sx = signCanvas.getContext('2d');
+    /* 暗色背板 */
+    sx.fillStyle = 'rgba(20,10,15,.9)';
+    sx.fillRect(0, 0, 512, 176);
+    /* 内边框（公司色，加粗更好认） */
+    sx.strokeStyle = co.chipColor;
+    sx.lineWidth = 7;
+    sx.strokeRect(9, 9, 494, 158);
+    /* 公司名（主字，加大） */
+    sx.fillStyle = '#fff8ec';
+    sx.font = '700 72px "PingFang SC", "Microsoft YaHei", sans-serif';
+    sx.textAlign = 'center';
+    sx.textBaseline = 'middle';
+    sx.fillText(co.chipName, 256, 64);
+    /* 副标题（角色/业务） */
+    sx.font = '500 30px "PingFang SC", sans-serif';
+    sx.fillStyle = co.accent;
+    sx.fillText(co.short || co.role, 256, 124);
+    const signTex = new THREE.CanvasTexture(signCanvas);
+    if ('colorSpace' in signTex) signTex.colorSpace = THREE.SRGBColorSpace;
+    /* 招牌做成薄板（有厚度，比飘着的平面更实） */
+    const sign = new THREE.Mesh(
+      new THREE.BoxGeometry(W * 1.0, W * 0.34, 0.3),
       new THREE.MeshStandardMaterial({
-        color: 0xffc987, emissive: 0xffab5e, emissiveIntensity: .95, roughness: .6
+        map: signTex, emissive: 0xffffff, emissiveMap: signTex,
+        emissiveIntensity: 0.62, roughness: .5, metalness: .08
       })
     );
-    door.position.set(0, .5 + 1.25, d / 2 + .09);
-    g.add(door);
+    sign.position.set(0, 0.6 + H + roofH + 0.9, D / 2 + 0.05);
+    g.add(sign);
 
-    /* 窗（发光） */
-    const winMat = new THREE.MeshStandardMaterial({
-      color: 0xfff0cf, emissive: 0xffcf8a, emissiveIntensity: 1.15, roughness: .35
+    /* 门前立牌（远处也能一眼认出是哪家公司） */
+    const yardCanvas = document.createElement('canvas');
+    yardCanvas.width = 512; yardCanvas.height = 256;
+    const yc = yardCanvas.getContext('2d');
+    yc.fillStyle = '#2a1418';
+    yc.fillRect(0, 0, 512, 256);
+    yc.strokeStyle = co.chipColor;
+    yc.lineWidth = 9;
+    yc.strokeRect(11, 11, 490, 234);
+    yc.fillStyle = '#fff8ec';
+    yc.font = '700 78px "PingFang SC", "Microsoft YaHei", sans-serif';
+    yc.textAlign = 'center';
+    yc.textBaseline = 'middle';
+    yc.fillText(co.chipName, 256, 88);
+    yc.font = '500 30px "PingFang SC", sans-serif';
+    yc.fillStyle = co.accent;
+    yc.fillText(co.short || co.role, 256, 158);
+    yc.font = '600 24px ui-monospace, "SFMono-Regular", Consolas, monospace';
+    yc.fillStyle = 'rgba(255,190,120,.85)';
+    yc.fillText(co.chipType.toUpperCase(), 256, 210);
+    const yardTex = new THREE.CanvasTexture(yardCanvas);
+    if ('colorSpace' in yardTex) yardTex.colorSpace = THREE.SRGBColorSpace;
+
+    const yardW = 7.2, yardH = 3.2;
+    const yardZ = D / 2 + 4.5;
+    const yardBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(yardW, yardH, 0.28),
+      new THREE.MeshStandardMaterial({
+        map: yardTex, emissive: 0xffffff, emissiveMap: yardTex,
+        emissiveIntensity: 0.55, roughness: .55, metalness: .08
+      })
+    );
+    yardBoard.position.set(0, 2.4, yardZ);
+    yardBoard.castShadow = true;
+    g.add(yardBoard);
+
+    /* 立牌的两根木柱 */
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x4a3226, roughness: .8, metalness: .1 });
+    [-1, 1].forEach((dx) => {
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.26, 0.3, 2.5, 10),
+        postMat
+      );
+      post.position.set(dx * (yardW / 2 - 0.6), 1.25, yardZ);
+      post.castShadow = true;
+      g.add(post);
     });
-    const rows = Math.max(1, Math.round((h - 1.4) / 2.3));
-    for (let r = 0; r < rows; r++) {
-      for (const sx of [-1, 1]) {
-        const win = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.25, .16), winMat);
-        win.position.set(sx * (w * .27), .5 + 1.7 + r * 2.3, d / 2 + .09);
-        g.add(win);
-        const side = new THREE.Mesh(new THREE.BoxGeometry(.16, 1.15, 1.3), winMat);
-        side.position.set(sx * (w / 2 + .08), .5 + 1.7 + r * 2.3, -d * .1);
-        g.add(side);
+
+    /* 屋顶屋脊信号灯（暖红 LED，钉在屋脊正上方） */
+    const beaconMat = new THREE.MeshStandardMaterial({
+      color: 0xff5030, emissive: 0xff3020, emissiveIntensity: 1.8
+    });
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(.38, 12, 12), beaconMat);
+    beacon.position.set(0, 0.6 + H + roofH + 0.35, 0);
+    g.add(beacon);
+
+    const top = new THREE.Mesh(
+      new THREE.PlaneGeometry(W * 0.96, D * 0.96),
+      new THREE.MeshStandardMaterial({ map: makeChipTopTexture(co), roughness: .35, metalness: .25 })
+    );
+    top.rotation.x = -Math.PI / 2;
+    top.position.y = 0.6 + H + 0.005;
+    g.add(top);
+
+    /* 顶面四角的金属垫（焊盘） */
+    const padMat = new THREE.MeshStandardMaterial({ color: 0xc9b07a, metalness: .9, roughness: .2 });
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, cz]) => {
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.12, 0.8), padMat);
+      pad.position.set(sx * (W / 2 - 0.6), 0.6 + H + 0.07, cz * (D / 2 - 0.6));
+      g.add(pad);
+    });
+
+    /* 类型特定装饰 */
+    if (co.chipType === 'connectivity') {
+      /* WiFi：天线 */
+      const ant = new THREE.Mesh(
+        new THREE.CylinderGeometry(.18, .18, 9, 8),
+        new THREE.MeshStandardMaterial({ color: 0xb4b2a9, metalness: .85, roughness: .25 })
+      );
+      ant.position.set(0, 0.6 + H + 4.5, -D / 2 + 1);
+      ant.castShadow = true;
+      g.add(ant);
+      const tip = new THREE.Mesh(
+        new THREE.SphereGeometry(.55, 12, 12),
+        new THREE.MeshStandardMaterial({ color: co.chipColor, emissive: co.chipColor, emissiveIntensity: 0.8, metalness: .3, roughness: .4 })
+      );
+      tip.position.set(0, 0.6 + H + 9.1, -D / 2 + 1);
+      g.add(tip);
+    } else if (co.chipType === 'signal') {
+      /* Audio：外露的 audio jack 圆柱 */
+      const jack = new THREE.Mesh(
+        new THREE.CylinderGeometry(.7, .7, 1.4, 16),
+        new THREE.MeshStandardMaterial({ color: 0x888780, metalness: .9, roughness: .25 })
+      );
+      jack.rotation.z = Math.PI / 2;
+      jack.position.set(W / 2 + 0.7, 1.2, 0);
+      g.add(jack);
+    } else if (co.chipType === 'io') {
+      /* GPIO：一排金色引脚 */
+      const pinMat = new THREE.MeshStandardMaterial({ color: 0xef9f27, metalness: .85, roughness: .25 });
+      for (let i = 0; i < 6; i++) {
+        const pin = new THREE.Mesh(new THREE.BoxGeometry(.35, 1.8, .35), pinMat);
+        pin.position.set(-W / 2 + 1.2 + i * 2, 1.5, -D / 2 - 0.9);
+        g.add(pin);
+      }
+    } else if (co.chipType === 'accelerator') {
+      /* NPU：顶面 4×4 LED 阵列（发光的红点） */
+      const ledMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff, emissive: co.chipColor, emissiveIntensity: 1.6,
+        roughness: .3, metalness: .1
+      });
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const led = new THREE.Mesh(new THREE.BoxGeometry(.6, .15, .6), ledMat);
+          led.position.set(-3 + c * 2, 0.6 + H + 0.12, -2 + r * 1.5);
+          led.userData.t0 = (r * 4 + c) * 0.13;
+          g.add(led);
+        }
       }
     }
 
-    /* 门前小路 */
-    const path = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.2, 5.4),
-      mat('#313a4e', { roughness: .96 })
-    );
-    path.rotation.x = -Math.PI / 2;
-    path.position.set(0, .03, d / 2 + 3.2);
-    g.add(path);
-
-    /* 路牌：年份 + 公司简称 */
-    const yr = (co.start || '').slice(0, 4);
-    const yrEnd = co.end ? co.end.slice(0, 4) : '今';
-    const sign = makeSign(co.short || co.name, yr + '–' + yrEnd, co.tint);
-    sign.position.set(w * .5 + 1.5, 0, d * .5 + 2.2);
-    g.add(sign);
-
-    /* 房前小灯，暖黄 */
-    const lamp = new THREE.PointLight(0xffb877, 12, 16, 2);
-    lamp.position.set(0, 3.6, d / 2 + 1.4);
-    g.add(lamp);
-
-    scene.add(g);
-
-    /* 拾取用的隐形包围盒：覆盖整栋房，点击手感更宽容 */
+    /* 不可见命中盒（点击拾取容差大） */
     const hit = new THREE.Mesh(
-      new THREE.BoxGeometry(w + 2.6, h + rh + 1.6, d + 2.6),
+      new THREE.BoxGeometry(W + 3, H + 3, D + 3),
       new THREE.MeshBasicMaterial({ visible: false })
     );
-    hit.position.set(x, (.5 + h + rh) / 2 + .4, z);
+    hit.position.y = 0.6 + H / 2;
     hit.userData.co = co;
-    hit.userData.group = g;
-    hit.userData.baseY = 0;
-    scene.add(hit);
-    houses.push(hit);
+    hit.userData.type = 'hit';
+    hit.userData.parent = g;
+    g.add(hit);
+    g.userData.hit = hit;
+    g.userData.body = body;
+    g.userData.substrate = substrate;
+
+    return g;
+  }
+
+  /* ============================================================
+     6. CPU Core —— 多层封装 + 散热片 + 内部发光（最震撼的那个）
+     ============================================================ */
+  function makeCPUCore(co) {
+    const g = new THREE.Group();
+    g.userData = { co, type: 'cpu' };
+
+    /* 多层结构（从下往上） */
+    const layers = [
+      /* PCB 焊盘底 */
+      { w: 26, d: 26, h: 0.8, y: 0.4, color: 0x1a2028, metalness: .4, roughness: .75 },
+      /* 陶瓷基板（白色） */
+      { w: 22, d: 22, h: 1.4, y: 1.5, color: 0xe8e2d0, metalness: .1, roughness: .85 },
+      /* 硅晶 die（深灰）—— 内部 */
+      { w: 18, d: 18, h: 1.0, y: 2.7, color: 0x2a2030, metalness: .25, roughness: .55, emissive: 0xff2018, emissiveIntensity: 0.45 },
+      /* 散热盖（铜/镍色） */
+      { w: 20, d: 20, h: 0.8, y: 3.6, color: 0xc9a875, metalness: .9, roughness: .25 }
+    ];
+
+    layers.forEach((L, i) => {
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(L.w, L.h, L.d),
+        new THREE.MeshStandardMaterial({
+          color: L.color, metalness: L.metalness, roughness: L.roughness,
+          emissive: L.emissive || 0x000000, emissiveIntensity: L.emissiveIntensity || 0
+        })
+      );
+      m.position.y = L.y;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.userData.layer = i;
+      g.add(m);
+    });
+
+    /* 散热鳍片（两侧 4 根，留出中央给刻字透光） */
+    const finMat = new THREE.MeshStandardMaterial({ color: 0xc4a578, metalness: .9, roughness: .28 });
+    const finXs = [-7, -4.5, 4.5, 7];
+    finXs.forEach((fx) => {
+      const fin = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 4.2, 14),
+        finMat
+      );
+      fin.position.set(fx, 6, 0);
+      fin.castShadow = true;
+      g.add(fin);
+    });
+
+    /* 中央加一根发光"时钟条"（红色 LED 灯条） */
+    const ledStripMat = new THREE.MeshStandardMaterial({
+      color: 0xff7060, emissive: 0xff4030, emissiveIntensity: 2.2
+    });
+    const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 0.4), ledStripMat);
+    ledStrip.position.set(0, 8.2, 0);
+    g.add(ledStrip);
+    /* 两端的小指示灯 */
+    [[-4, 0], [4, 0]].forEach(([dx]) => {
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 12), ledStripMat);
+      tip.position.set(dx, 8.2, 0);
+      g.add(tip);
+    });
+
+    /* 顶面刻字（用 canvas 贴一片薄板） */
+    const etchCanvas = document.createElement('canvas');
+    etchCanvas.width = 512; etchCanvas.height = 512;
+    const ex = etchCanvas.getContext('2d');
+    /* 散热盖铜面渐变 */
+    const etchGrad = ex.createLinearGradient(0, 0, 512, 512);
+    etchGrad.addColorStop(0, '#d9b985');
+    etchGrad.addColorStop(1, '#a88456');
+    ex.fillStyle = etchGrad;
+    ex.fillRect(0, 0, 512, 512);
+    ex.strokeStyle = 'rgba(60,40,15,.4)';
+    ex.lineWidth = 2;
+    ex.strokeRect(16, 16, 480, 480);
+    /* 中央徽章（深色方块） */
+    ex.fillStyle = '#3a2818';
+    ex.fillRect(60, 60, 392, 392);
+    ex.strokeStyle = '#d9b985';
+    ex.lineWidth = 4;
+    ex.strokeRect(60, 60, 392, 392);
+    ex.fillStyle = '#f7d9a8';
+    ex.font = '700 56px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ex.textAlign = 'center';
+    ex.fillText('CPU', 256, 200);
+    ex.font = '700 36px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ex.fillText('CORE', 256, 256);
+    ex.font = '600 22px ui-monospace, monospace';
+    ex.fillStyle = '#e0a85e';
+    ex.fillText('顾亚辉 · TEAM LEAD', 256, 320);
+    ex.font = '500 16px ui-monospace, monospace';
+    ex.fillStyle = '#bf8c50';
+    ex.fillText('REV 0xCAFE  ·  FAB 2022 → NOW', 256, 360);
+    /* 4 角定位标记（光刻用） */
+    [[80, 80], [432, 80], [80, 432], [432, 432]].forEach(([cx, cy]) => {
+      ex.fillStyle = '#d9b985';
+      ex.beginPath(); ex.arc(cx, cy, 8, 0, Math.PI * 2); ex.fill();
+      ex.strokeStyle = '#d9b985'; ex.lineWidth = 1.5;
+      ex.beginPath(); ex.moveTo(cx - 12, cy); ex.lineTo(cx + 12, cy); ex.stroke();
+      ex.beginPath(); ex.moveTo(cx, cy - 12); ex.lineTo(cx, cy + 12); ex.stroke();
+    });
+    /* 中间一条窄横线（CPU die 边缘指示） */
+    ex.strokeStyle = 'rgba(247,217,168,.25)';
+    ex.lineWidth = 1;
+    ex.beginPath(); ex.moveTo(60, 430); ex.lineTo(452, 430); ex.stroke();
+    const etchTex = new THREE.CanvasTexture(etchCanvas);
+    if ('colorSpace' in etchTex) etchTex.colorSpace = THREE.SRGBColorSpace;
+    const etchPlate = new THREE.Mesh(
+      new THREE.PlaneGeometry(17, 17),
+      new THREE.MeshStandardMaterial({ map: etchTex, metalness: .75, roughness: .35 })
+    );
+    etchPlate.rotation.x = -Math.PI / 2;
+    etchPlate.position.y = 4.05;
+    g.add(etchPlate);
+
+    /* 顶部红色脉冲光环（CPU 时钟信号） */
+    const pulseRing = new THREE.Mesh(
+      new THREE.RingGeometry(3, 3.6, 32),
+      new THREE.MeshBasicMaterial({ color: 0xff4a48, transparent: true, opacity: 0.85 })
+    );
+    pulseRing.rotation.x = -Math.PI / 2;
+    pulseRing.position.y = 4.15;
+    g.add(pulseRing);
+
+    /* 散热片顶端的指示灯 */
+    const ledMat = new THREE.MeshStandardMaterial({
+      color: 0xff7060, emissive: 0xff4030, emissiveIntensity: 1.5
+    });
+    const led = new THREE.Mesh(new THREE.SphereGeometry(.3, 12, 12), ledMat);
+    led.position.set(0, 11.6, 0);
+    g.add(led);
+
+    /* 命中盒 */
+    const hit = new THREE.Mesh(
+      new THREE.BoxGeometry(30, 16, 30),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hit.position.y = 7;
+    hit.userData.co = co;
+    hit.userData.type = 'hit';
+    hit.userData.parent = g;
+    g.add(hit);
+    g.userData.hit = hit;
+    g.userData.pulseRing = pulseRing;
+    g.userData.led = led;
+    return g;
+  }
+
+  /* ============================================================
+     7. 摆放所有模块 + 计算总线走线端点
+     ============================================================ */
+  /* 模块位置（顶视图，按 SoC 四象限布局，CPU 居中） */
+  const POS = {
+    cpu: { x: 0, z: 0 },
+    wifi: { x: 0, z: -38 },      /* 北 */
+    npu: { x: 38, z: 0 },        /* 东 */
+    audio: { x: 0, z: 38 },      /* 南 */
+    gpio: { x: -38, z: 0 }       /* 西 */
+  };
+
+  const moduleGroups = [];
+  const cpuGroup = makeCPUCore(COMPANIES.find(c => c.chipType === 'core'));
+  cpuGroup.position.set(POS.cpu.x, 0, POS.cpu.z);
+  scene.add(cpuGroup);
+  moduleGroups.push(cpuGroup);
+
+  COMPANIES.filter(c => c.chipType !== 'core').forEach((co) => {
+    const pos = POS[co.id];
+    if (!pos) { console.warn('[soc] no position for', co.id); return; }
+    const g = makeIPModule(co);
+    g.position.set(pos.x, 0, pos.z);
+    scene.add(g);
+    moduleGroups.push(g);
   });
 
-  /* ============================================================
-     树 & 石头：避开房子与路
-     ============================================================ */
-  const blocked = [];
-  houses.forEach(h => blocked.push(h.position));
+  /* 总线走线：从 hub 到每个非 CPU 模块 */
+  buildBusSpokes([
+    POS.wifi, POS.npu, POS.audio, POS.gpio
+  ]);
 
-  function farEnough(x, z, min) {
-    if (Math.abs(z) < 8.5) return false;            // 主路
-    if (Math.abs(x) > 40 || Math.abs(z) > 27) return false;
-    for (const b of blocked) {
-      const dx = x - b.x, dz = z - b.z;
-      if (Math.sqrt(dx * dx + dz * dz) < min) return false;
+  /* ============================================================
+     8. 数据包动画（小光球沿总线走线流动）
+     ============================================================ */
+  const packets = [];
+  function spawnPacket() {
+    const spokes = busSpokes;
+    if (!spokes.length) return;
+    const spoke = spokes[Math.floor(Math.random() * spokes.length)];
+    const geo = new THREE.SphereGeometry(.45, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: .95 });
+    const m = new THREE.Mesh(geo, mat);
+    m.userData = {
+      spoke,
+      t: Math.random() * 0.5,
+      speed: 0.0035 + Math.random() * 0.002,
+      dir: Math.random() > 0.5 ? 1 : -1
+    };
+    scene.add(m);
+    packets.push(m);
+  }
+  function updatePackets() {
+    for (let i = packets.length - 1; i >= 0; i--) {
+      const p = packets[i];
+      p.userData.t += p.userData.speed * p.userData.dir;
+      if (p.userData.t > 1 || p.userData.t < 0) {
+        scene.remove(p);
+        p.geometry.dispose();
+        p.material.dispose();
+        packets.splice(i, 1);
+        continue;
+      }
+      const t = p.userData.t;
+      /* spoke 几何沿 X 轴长，rotation z 旋转后用 setFromObject 取端点 */
+      const v1 = new THREE.Vector3();
+      const v2 = new THREE.Vector3();
+      p.userData.spoke.updateMatrixWorld();
+      /* 通过 spoke 自身的几何信息推端点 */
+      const len = p.userData.spoke.geometry.parameters.width;
+      p.userData.spoke.localToWorld(v1.set(-len / 2, 0, 0));
+      p.userData.spoke.localToWorld(v2.set(len / 2, 0, 0));
+      p.position.lerpVectors(v1, v2, t);
+      p.position.y = 0.6;
     }
-    return true;
   }
-
-  let placed = 0;
-  for (let i = 0; i < 700 && placed < 46; i++) {
-    const x = (rnd(i * 1.7) - .5) * 86;
-    const z = (rnd(i * 3.3 + 9) - .5) * 58;
-    if (!farEnough(x, z, 9.5)) continue;
-    const t = makeTree(.75 + rnd(i * 5.1) * .75);
-    t.position.set(x, 0, z);
-    scene.add(t);
-    placed++;
-  }
-
-  for (let i = 0; i < 26; i++) {
-    const x = (rnd(i * 2.9 + 41) - .5) * 80;
-    const z = (rnd(i * 4.7 + 77) - .5) * 54;
-    if (!farEnough(x, z, 7)) continue;
-    const s = .3 + rnd(i * 6.3) * .45;
-    const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(s, 0),
-      mat('#39414f', { roughness: .97 })
-    );
-    rock.position.set(x, s * .45, z);
-    rock.rotation.set(rnd(i) * 3, rnd(i + 1) * 3, rnd(i + 2) * 3);
-    rock.castShadow = true;
-    scene.add(rock);
-  }
+  setInterval(spawnPacket, 280);
 
   /* ============================================================
-     交互：hover 高亮 + 点击选中
+     9. 鼠标交互（拖拽 / 缩放 / 点击 / 悬停）
      ============================================================ */
-  const ray = new THREE.Raycaster();
-  const ptr = new THREE.Vector2();
+  let dragging = false, moved = 0, lastX = 0, lastY = 0, pinchDist = 0;
   const tip = document.getElementById('tip');
-  let hovered = null, selected = null;
-  let dragging = false, moved = 0, lastX = 0, lastY = 0;
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
 
-  canvas.addEventListener('pointerdown', e => {
-    dragging = true; moved = 0;
-    lastX = e.clientX; lastY = e.clientY;
+  function setTip(text, sub, x, y) {
+    if (!text) { tip.classList.remove('show'); return; }
+    tip.innerHTML = text + (sub ? '<i>' + sub + '</i>' : '');
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+    tip.classList.add('show');
+  }
+
+  function getHit(e) {
+    const rect = canvas.getBoundingClientRect();
+    ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects(moduleGroups.map(g => g.userData.hit), false);
+    return hits.length ? hits[0].object.userData.parent : null;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
   });
-
-  canvas.addEventListener('pointermove', e => {
+  canvas.addEventListener('pointermove', (e) => {
     if (dragging) {
       const dx = e.clientX - lastX, dy = e.clientY - lastY;
-      moved += Math.abs(dx) + Math.abs(dy);
-      theta -= dx * 0.006;
-      phi = Math.min(Math.PI * 0.47, Math.max(0.20, phi - dy * 0.005));
+      theta -= dx * 0.008;
+      phi = Math.max(.25, Math.min(1.35, phi - dy * 0.005));
       lastX = e.clientX; lastY = e.clientY;
-      return;
-    }
-    ptr.x = (e.clientX / innerWidth) * 2 - 1;
-    ptr.y = -(e.clientY / innerHeight) * 2 + 1;
-    ray.setFromCamera(ptr, camera);
-    const hits = ray.intersectObjects(houses, false);
-    const h = hits.length ? hits[0].object : null;
-    if (h !== hovered) {
-      hovered = h;
-      canvas.style.cursor = h ? 'pointer' : 'grab';
-    }
-    if (h) {
-      const co = h.userData.co;
-      const cnt = (co.works || []).length;
-      tip.innerHTML = esc(co.short || co.name) +
-        (cnt ? `<i>${cnt} 个作品</i>` : `<i>${(co.extraProjects || []).length} 个项目</i>`);
-      tip.style.left = e.clientX + 'px';
-      tip.style.top = e.clientY + 'px';
-      tip.classList.add('show');
+      moved += Math.abs(dx) + Math.abs(dy);
+      autoSpin = false; document.getElementById('btn-spin').classList.remove('on');
     } else {
-      tip.classList.remove('show');
+      const hit = getHit(e);
+      if (hit) {
+        canvas.style.cursor = 'pointer';
+        setTip(hit.userData.co.chipName, hit.userData.co.period, e.clientX, e.clientY);
+        hoverTarget = hit;
+      } else {
+        canvas.style.cursor = 'grab';
+        setTip(null);
+        hoverTarget = null;
+      }
     }
   });
-
-  canvas.addEventListener('pointerup', e => {
+  canvas.addEventListener('pointerup', (e) => {
+    if (dragging && moved < 6) {
+      const hit = getHit(e);
+      if (hit) openPanel(hit);
+    }
     dragging = false;
-    if (moved > 7) return;                    // 拖动过就不算点击
-    ptr.x = (e.clientX / innerWidth) * 2 - 1;
-    ptr.y = -(e.clientY / innerHeight) * 2 + 1;
-    ray.setFromCamera(ptr, camera);
-    const hits = ray.intersectObjects(houses, false);
-    if (hits.length) { select(hits[0].object); }
-    else { closePanel(); }
+    canvas.releasePointerCapture(e.pointerId);
   });
-
-  canvas.addEventListener('pointerleave', () => {
-    dragging = false; hovered = null; tip.classList.remove('show');
-  });
-
-  canvas.addEventListener('wheel', e => {
+  canvas.addEventListener('pointercancel', () => { dragging = false; });
+  canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    frustum = Math.min(88, Math.max(18, frustum * (1 + Math.sign(e.deltaY) * 0.09)));
+    frustum = Math.max(20, Math.min(70, frustum + e.deltaY * 0.04));
     resize();
   }, { passive: false });
 
-  /* 双指缩放 */
-  let pinch = 0;
-  canvas.addEventListener('touchmove', e => {
-    if (e.touches.length !== 2) return;
-    e.preventDefault();
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (pinch) {
-      frustum = Math.min(88, Math.max(18, frustum * (pinch / dist)));
-      resize();
-    }
-    pinch = dist;
-  }, { passive: false });
-  canvas.addEventListener('touchend', () => { pinch = 0; });
+  /* 触屏双指缩放 */
+  let pointers = new Map();
+  canvas.addEventListener('pointerdown', (e) => { pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
+  canvas.addEventListener('pointerup', (e) => { pointers.delete(e.pointerId); });
+  canvas.addEventListener('pointercancel', (e) => { pointers.delete(e.pointerId); });
 
   /* ============================================================
-     面板
+     10. 面板打开逻辑
      ============================================================ */
   const panel = document.getElementById('panel');
+  const elBar = document.getElementById('p-bar');
+  const elType = document.getElementById('p-type');
+  const elPeriod = document.getElementById('p-period');
+  const elName = document.getElementById('p-name');
+  const elShort = document.getElementById('p-short');
+  const elRole = document.getElementById('p-role');
+  const elBlurb = document.getElementById('p-blurb');
+  const elInternals = document.getElementById('p-internals');
+  const elWorks = document.getElementById('p-works');
+  const elExtra = document.getElementById('p-extra');
+  const elWorksSec = document.getElementById('p-works-sec');
+  const elExtraSec = document.getElementById('p-extra-sec');
 
-  function select(hit) {
-    selected = hit;
-    const co = hit.userData.co;
-    document.getElementById('p-bar').style.background = co.tint;
-    document.getElementById('p-period').textContent = co.period || '';
-    document.getElementById('p-name').textContent = co.name || '';
-    document.getElementById('p-role').textContent =
-      co.role + (co.dept ? ' · ' + co.dept : '');
-    document.getElementById('p-blurb').textContent = co.blurb || '';
+  document.getElementById('p-close').addEventListener('click', () => panel.classList.remove('open'));
 
-    const works = (co.works || []).map(s => bySlug[s]).filter(Boolean);
-    const worksBox = document.getElementById('p-works');
-    if (works.length) {
-      worksBox.innerHTML = works.map(p => {
-        const raw = (p.cover && p.cover.src) || '';
-        const isImg = raw && /\.(webp|png|jpe?g|gif|svg)(\?|$)/i.test(raw);
-        const thumb = isImg
-          ? `<img src="${esc(raw)}" alt="" loading="lazy">`
-          : `<span>${esc((p.title || '?').trim().charAt(0))}</span>`;
-        return `<a class="w-work" href="work.html?slug=${encodeURIComponent(p.slug)}">
-          <div class="w-thumb">${thumb}</div>
-          <div>
-            <div class="w-wt">${esc(p.title)}</div>
-            <div class="w-ws">${esc(p.summary || p.stack || '')}</div>
-          </div>
-        </a>`;
-      }).join('');
-      document.getElementById('p-works-sec').style.display = '';
-    } else {
-      worksBox.innerHTML = `<p class="w-empty">这家的项目还没单独建主页，见下方清单。</p>`;
-      document.getElementById('p-works-sec').style.display = 'none';
-    }
+  function openPanel(g) {
+    const co = g.userData.co;
+    elBar.style.background = co.chipColor;
+    elType.textContent = co.chipType.toUpperCase();
+    elType.style.color = co.chipColor;
+    elPeriod.textContent = co.period;
+    elName.textContent = co.chipName;
+    elShort.textContent = co.short;
+    elRole.textContent = co.role + (co.dept ? ' · ' + co.dept : '');
+    elBlurb.textContent = co.blurb;
 
-    const extra = co.extraProjects || [];
-    document.getElementById('p-extra').innerHTML =
-      extra.length ? extra.map(t => `<span class="w-tag">${esc(t)}</span>`).join('')
-        : `<span class="w-tag">—</span>`;
-    document.getElementById('p-extra-sec').style.display = extra.length ? '' : 'none';
-    document.getElementById('p-extra').style.display = extra.length ? '' : 'none';
+    /* CPU Core 才显示内部版图 */
+    elInternals.hidden = co.chipType !== 'core';
+
+    /* 作品 */
+    var worksHtml = (co.works || []).map(function (s) {
+      var p = bySlug[s];
+      if (!p) return '';
+      /* 作品标题脱敏：3D 版图统一用 anonTitle（公司/品牌名不出现在 UI 上） */
+      var wt = p.anonTitle || p.title || s;
+      var thumb = p.cover ? '<img src="' + p.cover.src + '" alt="">' : wt.slice(0, 2);
+      return '<a class="w-work" href="work.html?slug=' + encodeURIComponent(s) + '">' +
+        '<div class="w-thumb">' + thumb + '</div>' +
+        '<div><div class="w-wt">' + wt + '</div>' +
+        '<div class="w-ws">' + (p.subtitle || '') + '</div></div>' +
+        '</a>';
+    }).join('');
+    elWorks.innerHTML = worksHtml || '<div class="w-empty">此模块没有独立作品页（项目归属于 CPU Core 主导的平台）</div>';
+    elWorksSec.style.display = (co.works || []).length ? '' : 'none';
+
+    /* 其他项目 */
+    elExtra.innerHTML = (co.extraProjects || []).map(function (t) {
+      return '<span class="w-tag">' + esc(t) + '</span>';
+    }).join('') || '<span class="w-empty">—</span>';
+    elExtraSec.style.display = (co.extraProjects || []).length ? '' : 'none';
 
     panel.classList.add('open');
-    /* 镜头推近这栋房 */
-    const p = hit.position;
-    targetGoal.set(p.x, 3.2, p.z);
+
+    /* 把镜头推向这个模块 */
+    const p = POS[co.id] || POS.cpu;
+    targetGoal.set(p.x * 0.55, 9, p.z * 0.55);
   }
 
-  function closePanel() {
-    panel.classList.remove('open');
-    selected = null;
-    targetGoal.copy(DEF.target);
-  }
-
-  document.getElementById('p-close').addEventListener('click', closePanel);
-  addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
-
-  /* 工具栏 */
-  const btnSpin = document.getElementById('btn-spin');
-  btnSpin.addEventListener('click', () => {
+  /* ============================================================
+     11. 工具栏按钮
+     ============================================================ */
+  document.getElementById('btn-spin').addEventListener('click', function () {
     autoSpin = !autoSpin;
-    btnSpin.classList.toggle('on', autoSpin);
+    this.classList.toggle('on', autoSpin);
   });
-  document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    autoSpin = false; document.getElementById('btn-spin').classList.remove('on');
     theta = DEF.theta; phi = DEF.phi; frustum = DEF.frustum;
     targetGoal.copy(DEF.target);
     resize();
-    closePanel();
   });
 
   /* ============================================================
-     渲染循环
+     12. 渲染循环
      ============================================================ */
-  let t0 = 0;
-  function loop() {
-    requestAnimationFrame(loop);
-    if (autoSpin && !dragging) theta += 0.0016;
-    target.lerp(targetGoal, 0.075);
-    updateCamera();
-
-    /* 悬停的房子微微浮起 */
-    houses.forEach(h => {
-      const g = h.userData.group;
-      const want = (h === hovered || h === selected) ? 0.55 : 0;
-      g.position.y += (want - g.position.y) * 0.16;
-    });
-
-    renderer.render(scene, camera);
-  }
-
-  addEventListener('resize', resize);
+  let hoverTarget = null;
   resize();
   updateCamera();
-  loop();
 
-  /* 首帧渲染完成后再收起 loading，避免出现黑屏闪烁 */
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById('loading').classList.add('hide');
+  let t0 = performance.now();
+  function frame() {
+    requestAnimationFrame(frame);
+    const now = performance.now();
+    const dt = (now - t0) / 1000; t0 = now;
 
-    /* 自检数据：headless 下把渲染状态写进 #diag 供 dump-dom 读取 */
-    try {
-      const gl = renderer.getContext();
-      const dbg = gl.getExtension('WEBGL_debug_renderer_info');
-      const payload = {
-        ok: true,
-        houses: houses.length,
-        sceneChildren: scene.children.length,
-        drawCalls: renderer.info.render.calls,
-        triangles: renderer.info.render.triangles,
-        glVersion: gl.getParameter(gl.VERSION),
-        glRenderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'n/a',
-        canvas: renderer.domElement.width + 'x' + renderer.domElement.height
-      };
-      if (window.__worldReady) window.__worldReady(payload);
-    } catch (e) {
-      if (window.__worldReady) window.__worldReady({ ok: true, warn: String(e && e.message) });
+    if (autoSpin) theta += 0.0024;
+    target.lerp(targetGoal, 0.06);
+    updateCamera();
+
+    /* hover lift */
+    moduleGroups.forEach(function (g) {
+      const want = (g === hoverTarget) ? 1.4 : 0;
+      g.userData._y = (g.userData._y || 0);
+      g.userData._y += (want - g.userData._y) * 0.16;
+      g.position.y = g.userData._y;
+    });
+
+    /* CPU 内部红色脉冲 */
+    const pulse = 0.85 + 0.55 * Math.sin(now * 0.003);
+    cpuCore.intensity = 1.2 * pulse;
+    if (cpuGroup.userData.pulseRing) {
+      cpuGroup.userData.pulseRing.material.opacity = 0.3 + 0.6 * pulse;
+      const s = 0.9 + 0.4 * pulse;
+      cpuGroup.userData.pulseRing.scale.set(s, s, s);
+    }
+    if (cpuGroup.userData.led) {
+      cpuGroup.userData.led.material.emissiveIntensity = 1 + 1.2 * pulse;
     }
 
-    setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 520);
-  }));
+    /* NPU LED 闪烁 */
+    moduleGroups.forEach(function (g) {
+      g.traverse(function (o) {
+        if (o.userData && o.userData.t0 !== undefined) {
+          o.material.emissiveIntensity = 1.2 + 0.8 * Math.sin(now * 0.005 + o.userData.t0 * 6);
+        }
+      });
+    });
 
+    updatePackets();
+    renderer.render(scene, camera);
+
+    window.__diag = window.__diag || {};
+    window.__diag.ok = true;
+    window.__diag.objects = scene.children.length;
+    window.__diag.modules = moduleGroups.length;
+    window.__diag.drawCalls = renderer.info.render.calls;
+    window.__diag.triangles = renderer.info.render.triangles;
+    const d = document.getElementById('diag');
+    if (d) d.textContent = JSON.stringify(window.__diag);
+  }
+
+  window.addEventListener('resize', resize);
+
+  /* 场景已完整构建 —— 超时守卫以此为准，且优先于首帧，避免软渲染下首帧过慢误判 */
+  window.__sceneBuilt = true;
+  if (window.hideFallback) window.hideFallback();
+
+  /* 两帧后隐藏 loading */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('loading').classList.add('hide');
+    setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 520);
+    if (window.__worldReady) window.__worldReady();
+    frame();
+  }));
 }
+})().catch(function (err) {
+  /* 模块内任何一步炸了（含 three.js 加载失败）都落到文字版，不能白屏 */
+  console.error('[soc] fatal:', err);
+  if (window.showFallback) window.showFallback('3D 引擎加载失败');
+});
 </script>
+
 <script>
 /* ============================================================
-   最后一道保险
-   three.js 是外部 ES module：网络慢、被拦截、或 GPU 初始化失败时，
-   module 可能永远跑不到收起 loading 的那一步。这里超时兜底切文字版，
-   保证内容在任何情况下都可读、可被搜索引擎抓到。
+   超时守卫 + 自愈
+
+   踩过的坑：ES module 的 import 是提升的，模块体第一行要等 three.js
+   （687KB，托管在 GitHub Pages）下载完才执行，所以「模块已开始」这个信号
+   永远晚于网络。冷启动 + 弱网时 20 秒都未必置位 → 守卫误判成「资源加载超时」，
+   3D 明明后来跑起来了，用户却永远停在文字版。
+
+   四条防线：
+     1. 判定基准换成 window.__sceneBuilt（场景构建完成的瞬间置位，早于首帧）
+     2. 只要下载还在推进（字节数在涨），就不降级，一直等——慢 ≠ 失败
+     3. 只有下载彻底卡死/报错才降级，且降级后继续轮询 90 秒
+     4. 场景一旦建好立刻撤回降级（hideFallback），用户不会永远停在文字版
    ============================================================ */
 (function () {
-  var done = false;
-  window.__worldReady = function (payload) {
-    done = true;
-    if (window.__writeDiag) window.__writeDiag(Object.assign({ ok: true }, payload || {}));
-  };
+  var POLL_MAX = 90000, POLL_STEP = 1000, HARD_MAX = 150000;
 
-  setTimeout(function () {
-    if (done) return;
-    var l = document.getElementById('loading');
-    if (!l || l.classList.contains('hide')) return;
-    var msg = document.getElementById('load-msg');
-    if (msg) msg.innerHTML = '<span class="err">3D 场景加载较慢，正在切换为文字版时间线…</span>';
-    setTimeout(function () {
-      if (!done) window.showFallback('加载超时');
-    }, 4000);
-  }, 10000);
+  function sub(msg) {
+    var s = document.getElementById('load-sub');
+    if (s && s.textContent !== msg) s.textContent = msg;
+  }
+
+  /* 每 3 秒采样一次下载字节数，判断「在动」还是「死了」 */
+  var lastGot = -1, stalledFor = 0;
+  setInterval(function () {
+    if (window.__sceneBuilt) return;
+    var dl = window.__dl || {};
+    if (dl.err) { stalledFor = 999; return; }
+    if (dl.got > lastGot) { lastGot = dl.got; stalledFor = 0; }
+    else { stalledFor += 3000; }
+  }, 3000);
+
+  var start = Date.now();
+  var timer = setInterval(function () {
+    if (window.__sceneBuilt) {
+      clearInterval(timer);
+      if (window.hideFallback) window.hideFallback();
+      return;
+    }
+    var waited = Date.now() - start;
+
+    /* 还在推进就继续等，只是偶尔给个交代 */
+    if (stalledFor < 12000 && waited < HARD_MAX) {
+      if (waited > 12000 && waited % 15000 < 1100) {
+        sub('网络较慢，仍在载入引擎……已等 ' + Math.round(waited / 1000) + 's');
+      }
+      return;
+    }
+
+    /* 卡死或超时 —— 降级，但留后路 */
+    clearInterval(timer);
+    if (window.showFallback) {
+      window.showFallback(dl_reason());
+    }
+    var w2 = 0;
+    var t2 = setInterval(function () {
+      w2 += POLL_STEP;
+      if (window.__sceneBuilt) {
+        clearInterval(t2);
+        if (window.hideFallback) window.hideFallback();
+      } else if (w2 >= POLL_MAX) {
+        clearInterval(t2);
+      }
+    }, POLL_STEP);
+  }, POLL_STEP);
+
+  function dl_reason() {
+    var dl = window.__dl || {};
+    if (dl.err && dl.err !== 'no-stream') return '3D 引擎下载失败';
+    return window.__worldStarted ? '场景渲染超时' : '资源加载超时';
+  }
 })();
 </script>
+
 </body>
 </html>

@@ -123,6 +123,8 @@ window.SITE = {
     {
       slug: "xiaodu",
       title: "儿童手表小度助手",
+      /* 3D 版图面板用的脱敏标题（world.html 优先取它，其他页仍显示原名） */
+      anonTitle: "儿童手表语音助手",
       summary: "百度 DuerOS 适配层「OneApp」，已落地小天才、华为、小寻等多款儿童手表。",
       desc: "百度 DuerOS 生态完整适配层「OneApp」，聚合语音助手 / 内容 / 学习工具 / 小游戏等，已应用于小天才、华为、小寻及众多白牌儿童手表。",
       stack: "DuerOS · LVGL",
@@ -219,95 +221,101 @@ window.SITE = {
     }
   ],
 
-  /* ---------- 公司时间线（3D 小镇 world.html 用） ----------
+  /* ---------- SoC 职业版图（world.html 用） ----------
    *
-   * 每个节点 = 小镇里的一栋房子，按 start 时间沿 S 形小路依次排列。
+   * 每个节点 = 芯片 die 上的一个 IP 模块。CPU Core 居中、其它 4 个散布四周，
+   * 配上金色总线走线，构成"我是一个 SoC"的视觉隐喻。
    *
-   *   id            唯一标识（英文）
-   *   works[]       主页已收录的作品，填 projects 里的 slug，点击可跳详情页
-   *   extraProjects[] 简历里有、主页还没建页面的项目，只列名字不跳转
-   *   tint / roof   房子墙体色与屋顶色（world.html 直接拿来上色）
+   *   chipName      模块名（顶面牌匾 / 面板大标题都取这个）
+   *   short         公开的"代指标签"（某知名仪表公司 等，隐私保护用）
+   *   chipType      io | connectivity | signal | accelerator | core
+   *                 影响 3D 顶面图案与配色
+   *   chipColor     模块主题色（hex）
+   *   accent        模块点缀色（hex，标签/边框用）
+   *   role / period / blurb / works / extraProjects  同旧约定
    *
-   * 加一栋房：复制一个对象改掉 id 即可，world.html 会自动多画一栋、自动排位置。
-   * 改颜色 / 改公司名 / 增删作品，都只动这里，不用碰 world.html。 */
+   * 真实公司名（realName）只留在数据源里，公开界面一律用 chipName + short。
+   * 加一个模块：复制对象改 id / chipName，其它字段填好即可。 */
   companies: [
     {
-      id: "haiheng",
-      name: "上海海恒机电仪表有限公司",
-      short: "海恒机电",
+      id: "gpio",
+      realName: "上海海恒机电仪表有限公司",
+      short: "某知名仪表公司",
+      chipName: "GPIO · UART",
+      chipType: "io",
+      chipColor: "#378ADD",
+      accent: "#B5D4F4",
       role: "研发工程师 → 项目组 Team Leader",
       dept: "研发部",
       period: "2015/03 – 2017/05",
       start: "2015-03", end: "2017-05",
-      tint: "#D85A30", roof: "#993C1D",
-      blurb: "从仪器维护走向完整产品研发，2017 年晋升 Team Leader 带 3 人小组，负责 NXP LPC / STM32 固件、上位机与部分电路设计。",
+      blurb: "从仪器维护走向完整产品研发。2017 年晋升 Team Leader 带 3 人小组，负责 NXP LPC / STM32 固件、上位机与部分电路设计。",
       works: [],
       extraProjects: ["色度仪（污水色度自动检测）", "在线仪器通用软件框架", "仪器物联网远程监控"]
     },
     {
-      id: "zilian",
-      name: "自连电子科技（上海）有限公司",
-      short: "自连电子",
+      id: "wifi",
+      realName: "自连电子科技（上海）有限公司",
+      short: "某知名模组公司",
+      chipName: "WiFi / BLE IP",
+      chipType: "connectivity",
+      chipColor: "#1D9E75",
+      accent: "#9FE1CB",
       role: "嵌入式软件工程师",
       dept: "AIDK 研发中心",
       period: "2017/05 – 2019/10",
       start: "2017-05", end: "2019-10",
-      tint: "#1D9E75", roof: "#0F6E56",
       blurb: "公司核心持股员工之一。主导开辟 2G / 4G / VPN / 网关四条产品线，独立完成自组网协议 freelink 与首个 Linux 项目。",
       works: ["edgebox", "vpn-gateway", "freelink", "aidk-wifi"],
       extraProjects: ["冷链 IoT 解决方案", "AIDK 平台 WiFi 驱动与协议栈升级", "AIDK 物联网组件接口设计", "AIDK 框架调整升级"]
     },
     {
-      id: "weichuang",
-      name: "上海微创医疗器械（集团）有限公司",
-      short: "微创医疗",
+      id: "audio",
+      realName: "上海微创医疗器械（集团）有限公司",
+      short: "某知名医疗器械公司",
+      chipName: "Audio Engine",
+      chipType: "signal",
+      chipColor: "#7F77DD",
+      accent: "#CECBF6",
       role: "嵌入式软件工程师",
       dept: "商业发展部 · 新技术研发部",
       period: "2019/10 – 2021/05",
       start: "2019-10", end: "2021-05",
-      tint: "#BA7517", roof: "#854F0B",
       blurb: "负责有源新产品预研、新技术开发与新平台搭建。参与国内首款集心电与心音采集、AI 辅助分析于一体的智能听诊器。",
       works: ["stethoscope"],
       extraProjects: ["智能听诊器预研", "智能体温贴预研", "手术直播盒"]
     },
     {
-      id: "xiaodu",
-      name: "上海小度人工智能有限公司（百度集团）",
-      short: "小度人工智能",
+      id: "npu",
+      realName: "上海小度人工智能有限公司（百度集团）",
+      short: "知名互联网大厂",
+      chipName: "NPU · AI",
+      chipType: "accelerator",
+      chipColor: "#D4537E",
+      accent: "#F4C0D1",
       role: "高级研发工程师（嵌入式）",
-      dept: "小度大商业产研部",
+      dept: "智能硬件 · 大商业产研部",
       period: "2021/05 – 2022/07",
       start: "2021-05", end: "2022-07",
-      tint: "#378ADD", roof: "#185FA5",
-      blurb: "从 0 搭建儿童手表小度助手 SDK，迭代至 v2.1.3，已对接小天才、小寻、华为及众多白牌手表厂商；参与 DuerOS 开发与维护。",
+      blurb: "从 0 搭建儿童手表语音助手 SDK，迭代至 v2.1.3，已对接国内头部儿童手表品牌及众多白牌手表厂商；参与自研语音操作系统开发与维护。",
       works: ["xiaodu"],
       extraProjects: []
     },
     {
-      id: "ronghe",
-      name: "上海融和智电新能源有限公司（国家电投集团）",
-      short: "融和智电",
+      id: "cpu",
+      realName: "上海融和智电新能源有限公司（国家电投集团）",
+      short: "某央企背景能源科技公司",
+      chipName: "Main CPU Core",
+      chipType: "core",
+      chipColor: "#E24B4A",
+      accent: "#F09595",
       role: "嵌入式软件工程师 · 智能场站研发团队负责人",
       dept: "数字科技部",
       period: "2022/07 – 至今",
       start: "2022-07", end: "",
-      tint: "#7F77DD", roof: "#534AB7",
       blurb: "参与自研嵌入式 YEP 平台（SOA 架构中台）建设，孵化并带领站控、sEMS 能量管理、AIBox 边端推理三个小组。",
       works: ["zhuge-agent"],
       extraProjects: ["嵌入式 YEP 平台", "换电站控系统", "边端能量管理系统 sEMS", "边端推理系统 AIBox"]
-    },
-    {
-      id: "lab",
-      name: "个人实验室",
-      short: "个人实验室",
-      role: "业余时间的工具与探索",
-      dept: "",
-      period: "持续",
-      start: "2023-01", end: "",
-      tint: "#639922", roof: "#3B6D11",
-      blurb: "工作之外折腾的东西：给同行用的小工具，以及自己想验证的想法。",
-      works: ["firmware-vision", "api-workbench"],
-      extraProjects: []
     }
   ],
 
