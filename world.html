@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SoC 职业版图 · 顾亚辉</title>
-<link rel="stylesheet" href="styles.css?v=covicon21">
+<link rel="stylesheet" href="styles.css?v=covicon23">
 <!-- 提前建连（真正的下载由下面的流式预取脚本发起） -->
 <link rel="preconnect" href="https://icycal.github.io" crossorigin>
 
@@ -318,6 +318,7 @@
 
 <div class="w-hint">
   <span><b>拖拽</b> 旋转</span>
+  <span><b>右键拖拽</b> 平移</span>
   <span><b>滚轮</b> 缩放</span>
   <span><b>点击模块</b> 看 datasheet</span>
 </div>
@@ -402,7 +403,7 @@
 <!-- 自检探针：把渲染结果写进 DOM，便于 headless 环境验证（正常访问时不可见） -->
 <div id="diag" hidden></div>
 
-<script src="data.js?v=covicon21"></script>
+<script src="data.js?v=covicon23"></script>
 <script>
 /* ============================================================
    降级用的文字版图 —— 必须能在 ES module 失败时独立跑
@@ -577,13 +578,15 @@ function boot() {
   let frustum = 38;
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 600);
 
-  const target = new THREE.Vector3(0, 4, 0);
-  const targetGoal = new THREE.Vector3(0, 4, 0);
+  const target = new THREE.Vector3(0, 0, 0);
+  const targetGoal = new THREE.Vector3(0, 0, 0);
   let theta = Math.PI * 0.25;
   let phi = Math.atan(Math.SQRT2);   // 54.7°  标准等距仰角
   let autoSpin = false;
+  /* 平移边界：避免把场景拖飞。x/z 是地面坐标范围，y 是视线高度 */
+  const PAN = { x: 26, z: 22, y: 14 };
 
-  const DEF = { theta, phi, target: new THREE.Vector3(0, 4, 0), frustum: 38 };
+  const DEF = { theta, phi, target: new THREE.Vector3(0, 0, 0), frustum: 38 };
 
   function resize() {
     const w = innerWidth, h = innerHeight;
@@ -1484,7 +1487,7 @@ function boot() {
   /* ============================================================
      9. 鼠标交互（拖拽 / 缩放 / 点击 / 悬停）
      ============================================================ */
-  let dragging = false, moved = 0, lastX = 0, lastY = 0, pinchDist = 0;
+  let dragging = false, panning = false, moved = 0, lastX = 0, lastY = 0, pinchDist = 0;
   const tip = document.getElementById('tip');
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
@@ -1507,11 +1510,27 @@ function boot() {
   }
 
   canvas.addEventListener('pointerdown', (e) => {
-    dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
+    /* 右键或中键 → 平移视角；左键 → 旋转 */
+    panning = (e.button === 2 || e.button === 1);
+    dragging = !panning;
+    moved = 0; lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', (e) => {
-    if (dragging) {
+    if (panning) {
+      /* 正交相机：每像素对应的世界单位 = 2*frustum*aspect/W 与 2*frustum/H
+         但平移是直觉驱动，固定一个系数更顺滑。0.06 ≈ 一拖到底能移动 ~6 个世界单位 */
+      const aspect = (innerWidth * innerHeight === 0) ? 1 : (innerWidth / innerHeight);
+      const wx = (e.clientX - lastX) * 0.06;
+      const wy = (e.clientY - lastY) * 0.06;
+      /* 拖右 = 场景跟着右 = 相机看向左 = target.x 减小（让物体在屏幕右移） */
+      target.x = Math.max(-PAN.x, Math.min(PAN.x, target.x - wx * aspect));
+      target.y = Math.max(-PAN.y + 4, Math.min(PAN.y + 4, target.y + wy));
+      targetGoal.copy(target);
+      lastX = e.clientX; lastY = e.clientY;
+      moved += Math.abs(wx) + Math.abs(wy);
+      autoSpin = false; document.getElementById('btn-spin').classList.remove('on');
+    } else if (dragging) {
       const dx = e.clientX - lastX, dy = e.clientY - lastY;
       theta -= dx * 0.008;
       phi = Math.max(.25, Math.min(1.35, phi - dy * 0.005));
@@ -1525,7 +1544,7 @@ function boot() {
         setTip(hit.userData.co.chipName, hit.userData.co.period, e.clientX, e.clientY);
         hoverTarget = hit;
       } else {
-        canvas.style.cursor = 'grab';
+        canvas.style.cursor = panning ? 'grab' : 'grab';
         setTip(null);
         hoverTarget = null;
       }
@@ -1537,9 +1556,13 @@ function boot() {
       if (hit) openPanel(hit);
     }
     dragging = false;
+    panning = false;
     canvas.releasePointerCapture(e.pointerId);
   });
-  canvas.addEventListener('pointercancel', () => { dragging = false; });
+  canvas.addEventListener('pointercancel', () => { dragging = false; panning = false; });
+
+  /* 屏蔽右键菜单（不然右键拖完会弹菜单很烦） */
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     frustum = Math.max(20, Math.min(70, frustum + e.deltaY * 0.04));
