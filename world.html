@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SoC 职业版图 · 顾亚辉</title>
-<link rel="stylesheet" href="styles.css?v=covicon23">
+<link rel="stylesheet" href="styles.css?v=covicon24">
 <!-- 提前建连（真正的下载由下面的流式预取脚本发起） -->
 <link rel="preconnect" href="https://icycal.github.io" crossorigin>
 
@@ -113,6 +113,46 @@
   }
   .w-btn:hover{color:var(--fg);border-color:var(--accent)}
   .w-btn.on{color:var(--accent);border-color:var(--accent)}
+
+  /* ---------- 模式切换：旋转 / 平移（左键在当前模式下工作）---------- */
+  .w-modes{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .w-modes .w-btn{border:0;border-radius:0;padding:8px 14px;background:transparent}
+  .w-modes .w-btn+.w-btn{border-left:1px solid var(--line)}
+  .w-modes .w-btn.on{background:rgba(61,240,208,.14);color:var(--accent)}
+  .w-btn.w-icon{padding:8px 0;width:34px;text-align:center;font-size:13px}
+
+  /* ---------- 操作引导卡片 ---------- */
+  .w-guide{
+    position:fixed;inset:0;z-index:40;display:none;
+    align-items:center;justify-content:center;padding:20px;
+    background:rgba(6,9,15,.62);backdrop-filter:blur(3px);
+  }
+  .w-guide.show{display:flex}
+  .w-guide-card{
+    width:min(470px,100%);padding:26px 28px 22px;
+    border:1px solid var(--line);border-radius:16px;
+    background:rgba(16,20,30,.97);box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .w-guide-h{font-size:17px;margin-bottom:3px}
+  .w-guide-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+  .w-guide-list{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:9px}
+  .w-guide-list li{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:10px 13px;border:1px solid var(--line);border-radius:10px;
+    background:rgba(255,255,255,.02);font-size:13px;
+  }
+  .w-guide-list .k{
+    flex:0 0 30px;height:30px;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);border-radius:8px;font-size:14px;line-height:1;
+  }
+  .w-guide-list b{color:var(--fg);font-weight:500;flex:0 0 40px;padding-top:6px}
+  .w-guide-list i{font-style:normal;color:var(--muted);font-size:12.5px;line-height:1.55;padding-top:6px}
+  .w-guide-ok{
+    width:100%;padding:11px;border:1px solid var(--accent);border-radius:999px;
+    background:rgba(61,240,208,.12);color:var(--accent);font-size:13px;
+    cursor:pointer;font-family:inherit;transition:.2s;
+  }
+  .w-guide-ok:hover{background:rgba(61,240,208,.22)}
 
   /* ---------- 底部提示 ---------- */
   .w-hint{
@@ -311,16 +351,25 @@
     <div class="w-sub">每一段经历 = 一个 IP 模块 · 点击查看 datasheet</div>
   </div>
   <div class="w-tools">
+    <div class="w-modes">
+      <button class="w-btn on" id="btn-mode-rotate">旋转</button>
+      <button class="w-btn" id="btn-mode-pan">平移</button>
+    </div>
     <button class="w-btn" id="btn-spin">自动旋转</button>
     <button class="w-btn" id="btn-reset">重置视角</button>
+    <button class="w-btn w-icon" id="btn-help" title="操作说明" aria-label="操作说明">?</button>
   </div>
 </div>
 
-<div class="w-hint">
-  <span><b>拖拽</b> 旋转</span>
-  <span><b>右键拖拽</b> 平移</span>
-  <span><b>滚轮</b> 缩放</span>
-  <span><b>点击模块</b> 看 datasheet</span>
+<div class="w-hint" id="hint"></div>
+
+<div class="w-guide" id="guide">
+  <div class="w-guide-card">
+    <div class="w-guide-h">怎么玩这块芯片</div>
+    <div class="w-guide-sub" id="guide-sub"></div>
+    <ul class="w-guide-list" id="guide-list"></ul>
+    <button class="w-guide-ok" id="guide-ok">开始探索</button>
+  </div>
 </div>
 
 <div id="tip"></div>
@@ -403,7 +452,7 @@
 <!-- 自检探针：把渲染结果写进 DOM，便于 headless 环境验证（正常访问时不可见） -->
 <div id="diag" hidden></div>
 
-<script src="data.js?v=covicon23"></script>
+<script src="data.js?v=covicon24"></script>
 <script>
 /* ============================================================
    降级用的文字版图 —— 必须能在 ES module 失败时独立跑
@@ -438,6 +487,7 @@
       scene: document.getElementById('scene'),
       hint: document.querySelector('.w-hint'),
       tools: document.querySelector('.w-tools'),
+      guide: document.getElementById('guide'),
       fb: document.getElementById('fallback')
     };
   }
@@ -465,6 +515,8 @@
     if (el.scene) el.scene.style.display = 'none';
     if (el.hint) el.hint.style.display = 'none';
     if (el.tools) el.tools.style.display = 'none';
+    /* 没有 3D 可操作，操作引导就别弹了 */
+    if (el.guide) el.guide.classList.remove('show');
 
     var note = document.querySelector('.fb-note');
     if (note && reason) {
@@ -1488,6 +1540,11 @@ function boot() {
      9. 鼠标交互（拖拽 / 缩放 / 点击 / 悬停）
      ============================================================ */
   let dragging = false, panning = false, moved = 0, lastX = 0, lastY = 0, pinchDist = 0;
+  /* 左键拖动干什么由顶栏模式决定；Shift / 右键只是别名，不再是唯一入口
+     （右键平移用户根本发现不了，所以主入口改成看得见的按钮） */
+  let navMode = 'rotate';
+  const pointers = new Map();   /* 触屏多指：捏合缩放用 */
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
   const tip = document.getElementById('tip');
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
@@ -1509,14 +1566,38 @@ function boot() {
     return hits.length ? hits[0].object.userData.parent : null;
   }
 
+  function twoPointerDist() {
+    const p = Array.from(pointers.values());
+    return p.length < 2 ? 0 : Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+  }
+
   canvas.addEventListener('pointerdown', (e) => {
-    /* 右键或中键 → 平移视角；左键 → 旋转 */
-    panning = (e.button === 2 || e.button === 1);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      /* 双指落下：交给捏合缩放，不再走单指旋转/平移 */
+      pinchDist = twoPointerDist();
+      dragging = false; panning = false;
+      return;
+    }
+    /* 平移：当前是「平移」模式、或按住 Shift、或右键/中键（老别名，留着不碍事） */
+    panning = (navMode === 'pan') || e.shiftKey || e.button === 2 || e.button === 1;
     dragging = !panning;
     moved = 0; lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', (e) => {
+    /* 先维护指针表，双指捏合要实时坐标 */
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const d = twoPointerDist();
+      /* 手指张开 d 变大 → 放大 → frustum 变小（正交相机 frustum 越小视野越窄） */
+      if (pinchDist && d) {
+        frustum = Math.max(20, Math.min(70, frustum * (pinchDist / d)));
+        resize();
+      }
+      pinchDist = d;
+      return;
+    }
     if (panning) {
       /* 正交相机：每像素对应的世界单位 = 2*frustum*aspect/W 与 2*frustum/H
          但平移是直觉驱动，固定一个系数更顺滑。0.06 ≈ 一拖到底能移动 ~6 个世界单位 */
@@ -1544,7 +1625,7 @@ function boot() {
         setTip(hit.userData.co.chipName, hit.userData.co.period, e.clientX, e.clientY);
         hoverTarget = hit;
       } else {
-        canvas.style.cursor = panning ? 'grab' : 'grab';
+        canvas.style.cursor = navMode === 'pan' ? 'grab' : 'default';
         setTip(null);
         hoverTarget = null;
       }
@@ -1569,11 +1650,9 @@ function boot() {
     resize();
   }, { passive: false });
 
-  /* 触屏双指缩放 */
-  let pointers = new Map();
-  canvas.addEventListener('pointerdown', (e) => { pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
-  canvas.addEventListener('pointerup', (e) => { pointers.delete(e.pointerId); });
-  canvas.addEventListener('pointercancel', (e) => { pointers.delete(e.pointerId); });
+  /* 触屏：出指即清理捏合基准，避免下次双指跳变 */
+  canvas.addEventListener('pointerup', (e) => { pointers.delete(e.pointerId); pinchDist = 0; });
+  canvas.addEventListener('pointercancel', (e) => { pointers.delete(e.pointerId); pinchDist = 0; });
 
   /* ============================================================
      10. 面板打开逻辑
@@ -1649,7 +1728,77 @@ function boot() {
     theta = DEF.theta; phi = DEF.phi; frustum = DEF.frustum;
     targetGoal.copy(DEF.target);
     resize();
+    setNavMode('rotate');
   });
+
+  /* ============================================================
+     11b. 模式切换 + 操作引导（让用户知道怎么旋转 / 平移 / 缩放）
+     ============================================================ */
+  function setNavMode(m) {
+    navMode = m;
+    document.getElementById('btn-mode-rotate').classList.toggle('on', m === 'rotate');
+    document.getElementById('btn-mode-pan').classList.toggle('on', m === 'pan');
+    canvas.style.cursor = m === 'pan' ? 'grab' : 'default';
+    updateHint();
+  }
+  document.getElementById('btn-mode-rotate').addEventListener('click', function () { setNavMode('rotate'); });
+  document.getElementById('btn-mode-pan').addEventListener('click', function () { setNavMode('pan'); });
+
+  /* 底部提示条：跟着当前模式和设备类型变，不再写死「右键拖拽」 */
+  function updateHint() {
+    const el = document.getElementById('hint');
+    if (!el) return;
+    const isPan = (navMode === 'pan');
+    const drag = isTouch ? '单指拖动' : '左键拖动';
+    const items = [
+      [drag, isPan ? '平移' : '旋转'],
+      isTouch
+        ? [isPan ? '顶栏「旋转」' : '顶栏「平移」', isPan ? '旋转' : '平移']
+        : [isPan ? 'Shift + 左键' : '顶栏「平移」', isPan ? '旋转' : '平移'],
+      [isTouch ? '双指捏合' : '滚轮', '缩放'],
+      ['点击模块', '看 datasheet']
+    ];
+    el.innerHTML = items.map(function (it) {
+      return '<span><b>' + it[0] + '</b> ' + it[1] + '</span>';
+    }).join('');
+  }
+
+  const guide = document.getElementById('guide');
+  function openGuide() {
+    const items = isTouch ? [
+      ['👆', '旋转', '单指拖动'],
+      ['✥', '平移', '顶栏点「平移」，再单指拖动'],
+      ['🔍', '缩放', '双指捏合'],
+      ['📄', '详情', '点一下模块，看它的 datasheet']
+    ] : [
+      ['🖱️', '旋转', '按住左键拖动'],
+      ['✥', '平移', '顶栏点「平移」后左键拖动；或按住 Shift + 左键'],
+      ['🔍', '缩放', '滚轮上下'],
+      ['📄', '详情', '点一下模块，看它的 datasheet']
+    ];
+    document.getElementById('guide-list').innerHTML = items.map(function (it) {
+      return '<li><span class="k">' + it[0] + '</span><b>' + it[1] + '</b><i>' + it[2] + '</i></li>';
+    }).join('');
+    document.getElementById('guide-sub').textContent = isTouch ? '手机 / 平板' : '鼠标';
+    guide.classList.add('show');
+  }
+  function closeGuide() {
+    guide.classList.remove('show');
+    try { localStorage.setItem('wguide', '1'); } catch (err) {}
+  }
+  document.getElementById('btn-help').addEventListener('click', openGuide);
+  document.getElementById('guide-ok').addEventListener('click', closeGuide);
+  guide.addEventListener('click', function (e) { if (e.target === guide) closeGuide(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeGuide();
+    if (e.key === '?' ) { e.preventDefault(); openGuide(); }
+  });
+
+  setNavMode('rotate');
+  /* 头一回来自动弹一次；之后想再看就点顶栏的 ? */
+  let guideSeen = false;
+  try { guideSeen = localStorage.getItem('wguide') === '1'; } catch (err) {}
+  if (!guideSeen) openGuide();
 
   /* ============================================================
      12. 渲染循环
