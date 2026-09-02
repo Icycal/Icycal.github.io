@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SoC 职业版图 · 顾亚辉</title>
-<link rel="stylesheet" href="styles.css?v=covicon24">
+<link rel="stylesheet" href="styles.css?v=covicon25">
 <!-- 提前建连（真正的下载由下面的流式预取脚本发起） -->
 <link rel="preconnect" href="https://icycal.github.io" crossorigin>
 
@@ -452,7 +452,7 @@
 <!-- 自检探针：把渲染结果写进 DOM，便于 headless 环境验证（正常访问时不可见） -->
 <div id="diag" hidden></div>
 
-<script src="data.js?v=covicon24"></script>
+<script src="data.js?v=covicon25"></script>
 <script>
 /* ============================================================
    降级用的文字版图 —— 必须能在 ES module 失败时独立跑
@@ -635,8 +635,12 @@ function boot() {
   let theta = Math.PI * 0.25;
   let phi = Math.atan(Math.SQRT2);   // 54.7°  标准等距仰角
   let autoSpin = false;
-  /* 平移边界：避免把场景拖飞。x/z 是地面坐标范围，y 是视线高度 */
-  const PAN = { x: 26, z: 22, y: 14 };
+  /* 平移边界：地面（x/z）可自由漫游的半径。die 是 140×140（半边 70），
+     给到 130 让你能一路推到版图边角——之前只有 26，等于被关在小盒子里 */
+  const PAN_R = 130;
+  /* 缩放：frustum 越小 = 看得越细。5 能怼到引脚，220 能把整块 die 缩成掌心大小 */
+  const ZOOM = { min: 5, max: 220 };
+  const clampZoom = function (v) { return Math.max(ZOOM.min, Math.min(ZOOM.max, v)); };
 
   const DEF = { theta, phi, target: new THREE.Vector3(0, 0, 0), frustum: 38 };
 
@@ -1592,24 +1596,36 @@ function boot() {
       const d = twoPointerDist();
       /* 手指张开 d 变大 → 放大 → frustum 变小（正交相机 frustum 越小视野越窄） */
       if (pinchDist && d) {
-        frustum = Math.max(20, Math.min(70, frustum * (pinchDist / d)));
+        frustum = clampZoom(frustum * (pinchDist / d));
         resize();
       }
       pinchDist = d;
       return;
     }
     if (panning) {
-      /* 正交相机：每像素对应的世界单位 = 2*frustum*aspect/W 与 2*frustum/H
-         但平移是直觉驱动，固定一个系数更顺滑。0.06 ≈ 一拖到底能移动 ~6 个世界单位 */
-      const aspect = (innerWidth * innerHeight === 0) ? 1 : (innerWidth / innerHeight);
-      const wx = (e.clientX - lastX) * 0.06;
-      const wy = (e.clientY - lastY) * 0.06;
-      /* 拖右 = 场景跟着右 = 相机看向左 = target.x 减小（让物体在屏幕右移） */
-      target.x = Math.max(-PAN.x, Math.min(PAN.x, target.x - wx * aspect));
-      target.y = Math.max(-PAN.y + 4, Math.min(PAN.y + 4, target.y + wy));
+      /* 抓地式平移：鼠标往哪拖，芯片就往哪走（和拖地图 / Figma 画布一个手感）。
+         必须沿「屏幕方向」移动而不是沿世界坐标轴——否则一旦转过视角，
+         往左拖就会变成斜着走，转到对角时甚至完全反向。 */
+      const dx = e.clientX - lastX, dy = e.clientY - lastY;
+      const k = (2 * frustum) / (innerHeight || 1);   /* 每像素对应的世界单位，1:1 跟手 */
+      const st = Math.sin(theta), ct = Math.cos(theta);
+      /* 相机右向量（水平单位向量）= (cosθ, 0, -sinθ)：屏幕向右对应的地面方向 */
+      const rx = ct, rz = -st;
+      /* 屏幕向上在地面上的投影（水平单位向量）= (-sinθ, 0, -cosθ)：远离相机的方向 */
+      const ux = -st, uz = -ct;
+      /* 等距俯视把地面纵深压缩了 cos(phi) 倍，除掉它画面才真的 1:1 跟手 */
+      const depth = Math.max(0.15, Math.cos(phi));
+      /* 想要「场景跟着鼠标走」，相机就得往反方向退：拖右 → 相机沿 -right 走 */
+      const a = -dx * k;            /* 屏幕横移：拖右则相机左移，芯片看上去右移 */
+      const b = (dy * k) / depth;   /* 屏幕纵移：拖下则相机后撤，芯片看上去下移 */
+      target.x += rx * a + ux * b;
+      target.z += rz * a + uz * b;
+      /* 圆域夹紧：地面可漫游半径 PAN_R，不再被小方框卡死 */
+      const gr = Math.hypot(target.x, target.z);
+      if (gr > PAN_R) { target.x *= PAN_R / gr; target.z *= PAN_R / gr; }
       targetGoal.copy(target);
       lastX = e.clientX; lastY = e.clientY;
-      moved += Math.abs(wx) + Math.abs(wy);
+      moved += Math.abs(dx) + Math.abs(dy);
       autoSpin = false; document.getElementById('btn-spin').classList.remove('on');
     } else if (dragging) {
       const dx = e.clientX - lastX, dy = e.clientY - lastY;
@@ -1646,7 +1662,10 @@ function boot() {
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    frustum = Math.max(20, Math.min(70, frustum + e.deltaY * 0.04));
+    /* 乘性缩放：滚一格固定变化约 12%，不论当前多远手感都一致
+       （原来是线性 +deltaY*0.04，缩到远处滚半天没反应） */
+    const d = Math.max(-200, Math.min(200, e.deltaY));
+    frustum = clampZoom(frustum * Math.exp(d * 0.0012));
     resize();
   }, { passive: false });
 
@@ -1767,13 +1786,13 @@ function boot() {
   function openGuide() {
     const items = isTouch ? [
       ['👆', '旋转', '单指拖动'],
-      ['✥', '平移', '顶栏点「平移」，再单指拖动'],
-      ['🔍', '缩放', '双指捏合'],
+      ['✥', '平移', '顶栏点「平移」，朝哪个方向拖，芯片就往哪个方向走'],
+      ['🔍', '缩放', '双指捏合，可从整块 die 一路放大到引脚'],
       ['📄', '详情', '点一下模块，看它的 datasheet']
     ] : [
       ['🖱️', '旋转', '按住左键拖动'],
-      ['✥', '平移', '顶栏点「平移」后左键拖动；或按住 Shift + 左键'],
-      ['🔍', '缩放', '滚轮上下'],
+      ['✥', '平移', '顶栏点「平移」后左键拖动；朝哪拖芯片就往哪走（也支持 Shift + 左键）'],
+      ['🔍', '缩放', '滚轮上下，可从整块 die 一路放大到引脚'],
       ['📄', '详情', '点一下模块，看它的 datasheet']
     ];
     document.getElementById('guide-list').innerHTML = items.map(function (it) {
