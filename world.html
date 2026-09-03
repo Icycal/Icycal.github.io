@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SoC 职业版图 · 顾亚辉</title>
-<link rel="stylesheet" href="styles.css?v=covicon26">
+<link rel="stylesheet" href="styles.css?v=covicon27">
 <!-- 提前建连（真正的下载由下面的流式预取脚本发起） -->
 <link rel="preconnect" href="https://icycal.github.io" crossorigin>
 
@@ -229,6 +229,17 @@
     width:52px;height:52px;flex:none;border-radius:8px;overflow:hidden;
     background:rgba(40,48,65,.55);display:flex;align-items:center;justify-content:center;
     font-size:19px;font-weight:600;color:var(--accent);
+  }
+  /* 没图的项目占位：用夕阳色 + 芯片字体，比浏览器的「开裂图标」好看 */
+  .w-thumb-text{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:100%;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-weight:700;letter-spacing:.5px;font-size:15px;
+    color:#ffd9a0;text-shadow:0 0 6px rgba(255,180,100,.25);
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,180,100,.22), transparent 60%),
+      linear-gradient(135deg, #2a1530 0%, #4a2840 50%, #3a1f30 100%);
   }
   .w-thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .w-wt{font-size:13.5px;font-weight:500;line-height:1.4}
@@ -460,7 +471,7 @@
 <!-- 自检探针：把渲染结果写进 DOM，便于 headless 环境验证（正常访问时不可见） -->
 <div id="diag" hidden></div>
 
-<script src="data.js?v=covicon26"></script>
+<script src="data.js?v=covicon27"></script>
 <script>
 /* ============================================================
    降级用的文字版图 —— 必须能在 ES module 失败时独立跑
@@ -478,6 +489,13 @@
     });
   }
   window.esc = esc;
+  /* 作品封面加载失败（404、网络、CDN 问题）的兜底——替换成芯片风占位，
+     比浏览器默认那个「开裂图标」好看 */
+  window.__thumbFallback = function (img) {
+    var p = img.parentNode;
+    if (!p) return;
+    p.innerHTML = '<span class="w-thumb-text">' + (img.dataset.fb || '·') + '</span>';
+  };
 
   /* 自检：把结果 JSON 写进 #diag，headless 下 dump-dom 就能读到 */
   window.__diag = { ok: null, reason: null, at: new Date().toISOString() };
@@ -1721,11 +1739,17 @@ function boot() {
       if (!p) return '';
       /* 作品标题脱敏：3D 版图统一用 anonTitle（公司/品牌名不出现在 UI 上） */
       var wt = p.anonTitle || p.title || s;
-      var thumb = p.cover ? '<img src="' + p.cover.src + '" alt="">' : wt.slice(0, 2);
+      /* cover 必须是真有 src 才能渲染图——以前 p.cover 是个对象（哪怕 kind:"none"）也走 img 分支，
+         拼出 src="undefined"，浏览器画个「开裂图标」很丑。统一用 src 是否存在来判断 */
+      var hasImg = !!(p.cover && p.cover.src && p.cover.kind !== 'none');
+      var initial = esc(wt.slice(0, 2));
+      var thumb = hasImg
+        ? '<img src="' + p.cover.src + '" alt="" data-fb="' + initial + '" onerror="window.__thumbFallback(this)">'
+        : '<span class="w-thumb-text">' + initial + '</span>';
       return '<a class="w-work" href="work.html?slug=' + encodeURIComponent(s) + '">' +
         '<div class="w-thumb">' + thumb + '</div>' +
-        '<div><div class="w-wt">' + wt + '</div>' +
-        '<div class="w-ws">' + (p.subtitle || '') + '</div></div>' +
+        '<div><div class="w-wt">' + esc(wt) + '</div>' +
+        '<div class="w-ws">' + esc(p.subtitle || '') + '</div></div>' +
         '</a>';
     }).join('');
     elWorks.innerHTML = worksHtml || '<div class="w-empty">此模块没有独立作品页（项目归属于 CPU Core 主导的平台）</div>';
