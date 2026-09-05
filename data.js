@@ -227,8 +227,8 @@ window.SITE = {
       stack: "ROS 2 Humble · C++17 · SmolVLA · Jetson Orin NX · Python · Protobuf",
       link: "",
       repo: "https://gitee.com/binglingfenzi/vla_vehicle_platform",
-      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png", coverBg: "#141019", coverFit: "contain" },
-      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png" },
+      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29", coverBg: "#141019", coverFit: "contain" },
+      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29" },
       gallery: []
     }
   ],
