@@ -218,6 +218,18 @@ window.SITE = {
       cover: { kind: "icon", src: "works/api-workbench/icon.svg" },
       media: { kind: "web", src: "works/api-workbench/index.html" },
       gallery: []
+    },
+    {
+      slug: "chitu-vla",
+      title: "赤兔 VLA 平台",
+      summary: "Jetson Orin NX 上的 ROS 2 视觉-语言-动作驾驶平台：SmolVLA 端到端推理，影子模式三重兜底，打通采集—训练—部署闭环。",
+      desc: "「赤兔（Chitu）」是跑在 Jetson Orin NX 上的 ROS 2 Humble 车辆智能平台，面向阿克曼底盘，用 SmolVLA 打通「前方图像 + 车辆状态 + 任务指令 → 动作序列」的端到端推理链路。自研部分约 8,300 行 C++（ROS 节点、策略传输、控制链路）、4,200 行 Python（策略运行时、量化、数据工具）与 2,300 行原生 JS 控制台，5 周内 65 次提交独立完成。安全是设计主线：影子模式设置了三层边界——非 shadow 模式下策略适配器直接无法实例化，默认动作输出恒为零速、真实映射需显式解锁，控制多路复用器只在辅助 / 自主模式下才选通模型输出，因此影子推理在链路上到不了 cmd_vel。控制链路由控制租约（3~30 秒并带速度上限）、Deadman 保活（250ms 心跳，松手 300ms 归零）、20Hz 三源仲裁与安全守卫串联；守卫会强制归零非阿克曼分量，并在前方 0.45m 锥形区域内只封前进而保留倒车脱困。模型侧做进程隔离：策略运行时是独立进程，通过 Unix Socket 上的 Protobuf（4 字节长度前缀分帧，单帧上限 32MB）与 ROS 通信，把 torch / transformers / lerobot 与 ROS 2 彻底解耦；provider 抽象支持 Mock 与 SmolVLA 切换，量化提供 torchao 与自实现 per-channel 双引擎，权重压到 INT8、激活保持 bf16。数据闭环从 Episode 录制出发，以 observation_id 作为关联键对齐异步话题，按 Episode 整体切分以避免相邻帧跨训练 / 验证集造成时间相关性泄漏，转 LeRobot 数据集时若实测帧率与声明不符则直接报错而非静默重采样。工程化上配套 59 个脚本与 23 篇文档，发布产物用符号链接原子切换并自动回滚。",
+      stack: "ROS 2 Humble · C++17 · SmolVLA · Jetson Orin NX · Python · Protobuf",
+      link: "",
+      repo: "https://gitee.com/binglingfenzi/vla_vehicle_platform",
+      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png", coverBg: "#141019", coverFit: "contain" },
+      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png" },
+      gallery: []
     }
   ],
 
@@ -314,7 +326,7 @@ window.SITE = {
       period: "2022/07 – 至今",
       start: "2022-07", end: "",
       blurb: "参与自研嵌入式 YEP 平台（SOA 架构中台）建设，孵化并带领站控、sEMS 能量管理、AIBox 边端推理三个小组。",
-      works: ["zhuge-agent"],
+      works: ["zhuge-agent", "chitu-vla"],
       extraProjects: ["嵌入式 YEP 平台", "换电站控系统", "边端能量管理系统 sEMS", "边端推理系统 AIBox"]
     }
   ],
