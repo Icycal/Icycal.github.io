@@ -222,11 +222,11 @@ window.SITE = {
     {
       slug: "chitu-vla",
       title: "赤兔 VLA 平台",
-      summary: "Jetson Orin NX 上的 ROS 2 视觉-语言-动作驾驶平台：SmolVLA 端到端推理，影子模式三重兜底，打通采集—训练—部署闭环。",
-      desc: "「赤兔（Chitu）」是跑在 Jetson Orin NX 上的 ROS 2 Humble 车辆智能平台，面向阿克曼底盘，用 SmolVLA 打通「前方图像 + 车辆状态 + 任务指令 → 动作序列」的端到端推理链路。自研部分约 8,300 行 C++（ROS 节点、策略传输、控制链路）、4,200 行 Python（策略运行时、量化、数据工具）与 2,300 行原生 JS 控制台，5 周内 65 次提交独立完成。安全是设计主线：影子模式设置了三层边界——非 shadow 模式下策略适配器直接无法实例化，默认动作输出恒为零速、真实映射需显式解锁，控制多路复用器只在辅助 / 自主模式下才选通模型输出，因此影子推理在链路上到不了 cmd_vel。控制链路由控制租约（3~30 秒并带速度上限）、Deadman 保活（250ms 心跳，松手 300ms 归零）、20Hz 三源仲裁与安全守卫串联；守卫会强制归零非阿克曼分量，并在前方 0.45m 锥形区域内只封前进而保留倒车脱困。模型侧做进程隔离：策略运行时是独立进程，通过 Unix Socket 上的 Protobuf（4 字节长度前缀分帧，单帧上限 32MB）与 ROS 通信，把 torch / transformers / lerobot 与 ROS 2 彻底解耦；provider 抽象支持 Mock 与 SmolVLA 切换，量化提供 torchao 与自实现 per-channel 双引擎，权重压到 INT8、激活保持 bf16。数据闭环从 Episode 录制出发，以 observation_id 作为关联键对齐异步话题，按 Episode 整体切分以避免相邻帧跨训练 / 验证集造成时间相关性泄漏，转 LeRobot 数据集时若实测帧率与声明不符则直接报错而非静默重采样。工程化上配套 59 个脚本与 23 篇文档，发布产物用符号链接原子切换并自动回滚。",
-      stack: "ROS 2 Humble · C++17 · SmolVLA · Jetson Orin NX · Python · Protobuf",
+      summary: "基于 ROS 2 的车辆智能驾驶平台：底盘与 VLA 模型均可插拔，影子模式三重兜底保障安全，打通采集—训练—部署闭环。",
+      desc: "## 这是什么\n「赤兔（Chitu）」是一套基于 ROS 2 的车辆智能驾驶平台：把「前方图像 + 车辆状态 + 任务指令」端到端映射成动作序列，让车听得懂指令并照做。平台不绑定特定底盘，也不绑定特定 VLA 模型——两者都是可替换的插件。\n\n## 可替换是怎么做的\n底盘侧：发布时用 --chassis-provider 选装，默认 Wheeltec 阿克曼底盘，也可选 none 出纯平台包。\n模型侧：PolicyProvider 抽象接口配合 POLICY_PROVIDER 环境变量在运行时切换，SmolVLA 是内置的默认实现之一，另配 Mock 用于链路自检。换模型只需实现一个 provider，接的还是同一条控制链路。\n\n## 安全优先\n默认情况下模型输出碰不到车。影子模式设了三层边界：非 shadow 模式下策略适配器无法实例化；默认动作输出恒为零速，真实映射需显式解锁；控制多路复用器只在辅助 / 自主模式下才选通模型输出——影子推理在链路上到不了 cmd_vel。\n\n线上控制由四道闸串联：控制租约（3~30 秒并带速度上限）、Deadman 保活（250ms 心跳，松手 300ms 归零）、20Hz 三源仲裁、安全守卫。守卫会强制归零非阿克曼分量，并在前方 0.45m 锥形区域内只封前进而保留倒车脱困。\n\n## 关键工程决策\n模型进程隔离：策略运行时是独立进程，通过 Unix Socket 上的 Protobuf（4 字节长度前缀分帧）与 ROS 通信，把 torch / transformers / lerobot 与 ROS 2 彻底解耦——模型换框架不必牵动车载控制栈。量化提供 torchao 与自实现 per-channel 双引擎，权重压到 INT8、激活保持 bf16。\n\n数据闭环：以 observation_id 作为关联键对齐异步话题；按 Episode 整体切分训练 / 验证集，避免相邻帧跨集造成时间相关性泄漏；转 LeRobot 数据集时若实测帧率与声明不符则直接报错，而非静默重采样掩盖问题。\n\n## 交付\n配套 59 个脚本与 23 篇文档；按目标架构产出 arm64 / amd64 产物，符号链接原子切换并自动回滚。",
+      stack: "ROS 2 Humble · C++17 · Python · Protobuf · PyTorch · VLA 可插拔",
       link: "",
-      repo: "https://gitee.com/binglingfenzi/vla_vehicle_platform",
+      repo: "https://github.com/Icycal/vla_vehicle_platform",
       cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29", coverBg: "#141019", coverFit: "contain" },
       media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29" },
       gallery: []

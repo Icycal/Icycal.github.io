@@ -6,7 +6,7 @@
 <title>作品详情 · 顾亚辉</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230c0f17'/><text x='16' y='23' font-size='17' font-family='sans-serif' font-weight='bold' fill='%233df0d0' text-anchor='middle'>G</text></svg>">
 <meta name="description" content="作品详情 — 静态网页 / 图片 / 视频展示" />
-<link rel="stylesheet" href="styles.css?v=dframe19" />
+<link rel="stylesheet" href="styles.css?v=dframe21" />
 </head>
 <body>
 
@@ -37,7 +37,7 @@
 
 <div id="lightbox"><span class="close">×</span><img src="" alt=""></div>
 
-<script src="data.js?v=covicon29"></script>
+<script src="data.js?v=covicon30"></script>
 <script src="site.js"></script>
 <script>
 (function(){
@@ -127,6 +127,27 @@
       return '<img class="'+esc(cls)+'" src="'+safeSrc(src)+'" alt="'+esc(alt||'')+'" loading="lazy" '
         + 'onerror="this.onerror=null;this.alt=\'图片加载失败\';this.style.background=\'#1c2230\';this.style.minHeight=\'120px\'">';
     }
+    /* 详情正文：支持分段与小标题
+       desc 用空行分段；段落首行以 "## " 开头则渲染成小标题，其余作正文。
+       这样长介绍能分层呈现，而不是糊成一整面墙。 */
+    function descHTML(desc){
+      if (!desc) return '';
+      return String(desc).split(/\n{2,}/).map(function(seg){
+        seg = seg.trim();
+        if (!seg) return '';
+        var out = '';
+        /* 标题后直接跟正文（单换行）时，也要把首行抽成标题、其余留作正文 */
+        var lines = seg.split('\n');
+        if (lines[0].indexOf('## ') === 0){
+          out += '<h3 class="lead-h">'+esc(lines[0].slice(3).trim())+'</h3>';
+          lines = lines.slice(1);
+        }
+        var rest = lines.join('\n').trim();
+        if (rest) out += '<p class="lead">'+esc(rest)+'</p>';
+        return out;
+      }).join('');
+    }
+
     function mainMedia(m){
       m = m || {kind:'none'};
       if (m.kind === 'image') return '<div class="detail-media-frame">'+imgWithFallback(m.src, p.title, 'detail-hero-img')+'</div>';
@@ -176,7 +197,7 @@
         '</div>'+
       '</header>'+
       '<div class="'+bodyCls+'">'+
-        '<p class="lead">'+esc(p.desc||'')+'</p>'+
+        descHTML(p.desc)+
         mainMedia(p.media)+
         webNote+
         galleryHTML+
