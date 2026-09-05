@@ -162,6 +162,46 @@
   }
   .w-guide-ok:hover{background:rgba(61,240,208,.22)}
 
+  /* ---------- 公司速览 ---------- */
+  .w-overview{
+    position:fixed;inset:0;z-index:45;display:none;
+    align-items:flex-start;justify-content:center;padding:54px 20px;
+    background:rgba(6,9,15,.66);backdrop-filter:blur(3px);overflow:auto;
+  }
+  .w-overview.show{display:flex}
+  .w-ov-card{
+    width:min(920px,100%);padding:24px 26px 26px;margin:auto 0;
+    border:1px solid var(--line);border-radius:16px;
+    background:rgba(16,20,30,.98);box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .w-ov-head{position:relative;margin-bottom:18px;padding-right:36px}
+  .w-ov-h{font-size:17px;margin-bottom:3px}
+  .w-ov-sub{font-size:12px;color:var(--muted);line-height:1.5}
+  .w-ov-close{
+    position:absolute;top:-2px;right:-4px;width:30px;height:30px;
+    border:1px solid var(--line);border-radius:8px;background:transparent;
+    color:var(--muted);font-size:18px;line-height:1;cursor:pointer;transition:.2s;
+  }
+  .w-ov-close:hover{color:var(--fg);border-color:var(--accent)}
+  .w-ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:13px}
+  .w-ov-item{padding:15px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+  .w-ov-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .w-ov-dot{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
+  .w-ov-mod{font-size:15px;font-weight:600;color:var(--fg)}
+  .w-ov-type{
+    margin-left:auto;font-size:10px;letter-spacing:.6px;color:var(--muted);
+    border:1px solid var(--line);border-radius:6px;padding:2px 7px;white-space:nowrap;
+  }
+  .w-ov-short{font-size:13.5px;color:var(--accent);font-weight:500;margin-bottom:6px;line-height:1.5}
+  .w-ov-meta{font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.5}
+  .w-ov-blurb{font-size:12.5px;color:var(--fg);opacity:.82;line-height:1.6;margin:0 0 11px}
+  .w-ov-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .w-ov-tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  @media (max-width:760px){
+    .w-overview{padding:18px 12px}
+    .w-ov-card{padding:18px 16px 20px}
+  }
+
   /* ---------- 底部提示 ---------- */
   .w-hint{
     position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;
@@ -376,6 +416,7 @@
     </div>
     <button class="w-btn" id="btn-spin">自动旋转</button>
     <button class="w-btn" id="btn-reset">重置视角</button>
+    <button class="w-btn" id="btn-overview">公司速览</button>
     <button class="w-btn w-icon" id="btn-help" title="操作说明" aria-label="操作说明">?</button>
   </div>
 </div>
@@ -388,6 +429,17 @@
     <div class="w-guide-sub" id="guide-sub"></div>
     <ul class="w-guide-list" id="guide-list"></ul>
     <button class="w-guide-ok" id="guide-ok">开始探索</button>
+  </div>
+</div>
+
+<div class="w-overview" id="overview">
+  <div class="w-ov-card">
+    <div class="w-ov-head">
+      <div class="w-ov-h">公司 / 模块速览</div>
+      <div class="w-ov-sub">每块芯片 = 一段职业经历；公开界面只用代称，真实公司名仅留在数据源</div>
+      <button class="w-ov-close" id="ov-close" aria-label="关闭">×</button>
+    </div>
+    <div class="w-ov-grid" id="ov-grid"></div>
   </div>
 </div>
 
@@ -571,6 +623,43 @@
     }).join('');
     fb.classList.add('show');
   };
+})();
+</script>
+
+<script>
+/* 公司速览：独立于 3D 引擎，three.js 加载失败也能照常打开 */
+(function () {
+  var overview = document.getElementById('overview');
+  if (!overview) return;
+  var SITE = window.SITE || {};
+  var COMPANIES = SITE.companies || [];
+  var esc = window.esc || function (s) { return String(s == null ? '' : s); };
+  function ovCard(c) {
+    var dot = '<span class="w-ov-dot" style="background:' + esc(c.chipColor) + '"></span>';
+    var tags = (c.extraProjects && c.extraProjects.length)
+      ? '<div class="w-ov-tags">' + c.extraProjects.map(function (t) { return '<span class="w-ov-tag">' + esc(t) + '</span>'; }).join('') + '</div>'
+      : '';
+    return '<div class="w-ov-item">'
+      + '<div class="w-ov-top">' + dot + '<span class="w-ov-mod">' + esc(c.chipName) + '</span>'
+      + '<span class="w-ov-type">' + esc((c.chipType || '').toUpperCase()) + '</span></div>'
+      + '<div class="w-ov-short">' + esc(c.short) + '</div>'
+      + '<div class="w-ov-meta">' + esc(c.role) + ' · ' + esc(c.period) + '</div>'
+      + '<p class="w-ov-blurb">' + esc(c.blurb) + '</p>'
+      + tags
+      + '</div>';
+  }
+  function openOverview() {
+    var g = document.getElementById('guide'); if (g) g.classList.remove('show');
+    document.getElementById('ov-grid').innerHTML = COMPANIES.map(ovCard).join('');
+    overview.classList.add('show');
+  }
+  function closeOverview() { overview.classList.remove('show'); }
+  document.getElementById('btn-overview').addEventListener('click', openOverview);
+  document.getElementById('ov-close').addEventListener('click', closeOverview);
+  overview.addEventListener('click', function (e) { if (e.target === overview) closeOverview(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overview.classList.contains('show')) closeOverview();
+  });
 })();
 </script>
 
@@ -1847,6 +1936,7 @@ function boot() {
     guide.classList.remove('show');
     try { localStorage.setItem('wguide', '1'); } catch (err) {}
   }
+
   document.getElementById('btn-help').addEventListener('click', openGuide);
   document.getElementById('guide-ok').addEventListener('click', closeGuide);
   guide.addEventListener('click', function (e) { if (e.target === guide) closeGuide(); });
