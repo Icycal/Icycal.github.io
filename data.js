@@ -8,7 +8,7 @@
  *  · 作品里的图片/视频：统一放在 gu-videos 仓库（图床），本仓库只存代码 + 配置，
  *    gu-videos 仓库已开 GitHub Pages，素材直接经 GitHub 域名引用（国内比 jsDelivr 稳）：
  *      https://icycal.github.io/gu-videos/portfolio/<slug>/<file>
- *    例如 "https://icycal.github.io/gu-videos/portfolio/zhuge/overview.webp"、
+ *    例如 "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_02.webp"、
  *         "https://icycal.github.io/gu-videos/portfolio/stethoscope/stethoscope.mp4"。
  *    gu-videos 仓库里所有素材都在「作品集」目录下按作品 slug 分子目录存放
  *    （xiaodu / stethoscope / zhuge / wifimodule），详见该仓库 README。
@@ -108,10 +108,9 @@ window.SITE = {
       stack: "AI Agent · 多用户协作 · LLM",
       link: "",
       repo: "https://github.com/Icycal/zhuge.git",
-      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/overview.webp" },
-      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/conversation.webp" },
+      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_02.webp" },
+      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_02.webp" },
       gallery: [
-        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_02.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_03.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_04.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_05.webp",
