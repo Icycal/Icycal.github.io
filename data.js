@@ -103,21 +103,29 @@ window.SITE = {
     {
       slug: "zhuge-agent",
       title: "诸葛智能体",
-      summary: "团队内部智能体操作系统：把分散的 AI 能力沉淀为组织可长期建设、共享和运营的 AI 能力底座。",
-      desc: "面向团队内部场景的智能体操作系统。围绕 8 大能力模块构建：Skill（技能沉淀与复用）、CLI（命令行高效执行）、Agent（编排与维护）、用户变量（灵活配置、安全隔离）、确认卡（关键决策显式确认）、会话（上下文管理、持续协作）、运行观测（可观测、可追溯、可审计）、多端入口（多端接入、随时可用）。以「对话页」为团队成员最直接的入口，自然语言描述需求即可按上下文调用 Skill / CLI / Agent，覆盖开发、测试、运维、管理等多角色。",
+      summary: "团队内部 AI 流程操作系统：把分散的智能体能力沉淀为组织可长期建设、共享和运营的 AI 能力底座。",
+      desc: "## 这是什么\n诸葛是团队内部的 AI 流程操作系统：把分散的智能体能力沉淀为组织可长期建设、共享和运营的 AI 能力底座——不是个人助手，而是团队资产。\n\n围绕 8 大模块构建：Skill（技能沉淀与复用）、CLI（命令行高效执行）、Agent（编排与维护）、用户变量（灵活配置、安全隔离）、确认卡（关键决策显式确认）、会话（上下文管理、持续协作）、运行观测（可观测、可追溯、可审计）、多端入口（多端接入、随时可用）。\n\n## 设计架构\n五层主架构 + 两翼贯穿：\n- 接入层：Web / VS Code / API / 内嵌应用\n- 应用服务层：认证 / 对话 / 资源管理 / 设置 / 观测\n- 智能体编排层：主助手 / 上下文构建 / 工具路由 / 多 Agent 协作\n- 能力运行层：Prompt / Tool / Agent / App Runtime\n- 外部系统层：模型网关 / 企业系统 / Git & CI / 文件系统\n\n治理与安全层（权限、策略、密钥隔离、确认卡、审计）和持久化层（用户、会话、消息、任务、资源、事件）贯穿整个运行过程。\n\n## 核心理念：平台做薄，一切皆 Skill\n平台只管三件事——技能调度、记忆管理、安全约束。业务扩展全部沉淀为 Skill；平台越薄，Skill 越可组合；能力越分散，治理越要统一。\n\n已有 Skill 库按四层分层组织：业务任务层（如 publish-version、jira-bug-analysis）→ 用户中层 Skill（release-note-generator、build-version、version-archive）→ 底层用户能力层（read-jira、read-cf、version-rules）→ 平台内建 Skill（agent-monitor、attachment-reader、runtime-skill-debugger）。上层 Skill 组合调用下层能力，形成可复用的团队智能体分层体系。\n\n## 数据接入与多端入口\n数据隔离只需配置一个 API Key，团队共用一套模型账号；数据接入后，在对话页就能直接查询所有任务。多端入口（VS Code 插件 / Web / 小程序插件）让能力在业务发生的地方随手可用——业务操作页和 Agent 能力不再割裂。\n\n## 部署与安全\n单机器一键部署即可对外提供服务；客户端与代码严格隔离，团队平台必须可信任。",
       stack: "AI Agent · 多用户协作 · LLM",
       link: "",
       repo: "https://github.com/Icycal/zhuge.git",
       cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/overview.webp" },
       media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/zhuge/conversation.webp" },
       gallery: [
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_02.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_03.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_04.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_05.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_06.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_07.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_08.webp",
         "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_09.webp",
-        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_10.webp"
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_10.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_11.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_12.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_13.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_14.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_15.webp",
+        "https://icycal.github.io/gu-videos/portfolio/zhuge/slide_16.webp"
       ]
     },
     {
