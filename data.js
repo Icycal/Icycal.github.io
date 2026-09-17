@@ -234,9 +234,23 @@ window.SITE = {
       stack: "ROS 2 Humble · C++17 · Python · Protobuf · PyTorch · VLA 可插拔",
       link: "",
       repo: "https://github.com/Icycal/vla_vehicle_platform",
-      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29", coverBg: "#141019", coverFit: "contain" },
-      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/chitu-logo.png?v=covicon29" },
-      gallery: []
+      cover: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/slide_01.webp?v=covicon33", coverBg: "#0b0f14", coverFit: "cover" },
+      media: { kind: "image", src: "https://icycal.github.io/gu-videos/portfolio/chitu/slide_01.webp?v=covicon33" },
+      gallery: [
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_02.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_03.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_04.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_05.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_06.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_07.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_08.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_09.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_10.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_11.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_12.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_13.webp?v=covicon33",
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_14.webp?v=covicon33"
+      ]
     }
   ],
 
