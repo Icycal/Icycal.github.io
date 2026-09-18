@@ -248,8 +248,7 @@ window.SITE = {
         "https://icycal.github.io/gu-videos/portfolio/chitu/slide_10.webp?v=covicon33",
         "https://icycal.github.io/gu-videos/portfolio/chitu/slide_11.webp?v=covicon33",
         "https://icycal.github.io/gu-videos/portfolio/chitu/slide_12.webp?v=covicon33",
-        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_13.webp?v=covicon33",
-        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_14.webp?v=covicon33"
+        "https://icycal.github.io/gu-videos/portfolio/chitu/slide_13.webp?v=covicon33"
       ]
     }
   ],
